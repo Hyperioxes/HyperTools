@@ -53,18 +53,36 @@ operators = {
 }
 
 conditionResults = {
-	["Set Color"] = function(tracker,color)
-		tracker.color = color
+	["Set Bar Color"] = function(tracker,color)
+		tracker.barColor = color
+	end,
+	["Set Text Color"] = function(tracker,color)
+		tracker.textColor = color
+	end,
+	["Set Timer Color"] = function(tracker,color)
+		tracker.timeColor = color
+	end,
+	["Set Stacks Color"] = function(tracker,color)
+		tracker.stacksColor = color
+	end,
+	["Set Background Color"] = function(tracker,color)
+		tracker.backgroundColor = color
+	end,
+	["Set Border Color"] = function(tracker,color)
+		tracker.outlineColor = color
 	end,
 	["Hide Tracker"] = function(tracker)
 		tracker.show = false
-	end
+	end,
+	["Show Proc"] = function(tracker)
+		tracker.showProc = true
+	end,
 }
 
 conditionArgs1 = {
-	["Remaining Time"] = function(tracker)
-		if (tracker.expiresAt[HT_targets[tracker.target](tracker.targetNumber)] or 0) - GetGameTimeSeconds() > 0 then
-			return tracker.expiresAt[HT_targets[tracker.target](tracker.targetNumber)] - GetGameTimeSeconds()
+	["Remaining Time"] = function(tracker,override)
+		if (tracker.expiresAt[HT_targets[tracker.target](override.targetNumber or tracker.targetNumber)] or 0) - GetGameTimeSeconds() > 0 then
+			return tracker.expiresAt[HT_targets[tracker.target](override.targetNumber or tracker.targetNumber)] - GetGameTimeSeconds()
 		end
 		return 0
 	end,
@@ -74,4 +92,8 @@ conditionArgs1 = {
 		end
 		return 0
 	end,
+	["Group Role"] = function(tracker,override)
+		return GetGroupMemberSelectedRole("group"..override.targetNumber)
+	end,
+	
 }

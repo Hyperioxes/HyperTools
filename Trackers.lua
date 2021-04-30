@@ -4,6 +4,9 @@ WM = GetWindowManager()
 local function DisplayGroupControl(number)
 	if not DoesUnitExist("group"..number) then return true end
 	if IsUnitDead("group"..number) then return true end
+	if GetUnitName("group"..number) == GetUnitName("player") then return true end
+	if GetGroupMemberSelectedRole("group"..number) == 0 then return true end
+	if GetUnitZoneIndex("group"..number) ~= GetUnitZoneIndex("player") then return true end
 	return false
 end
 
@@ -14,6 +17,12 @@ local function createProgressBar(parent,t)
 		local container = parent:GetNamedChild(t.name.."_Progress Bar")
 		container:SetHidden(false)
 		container.delete = false
+		container:SetHandler("OnMoveStop", function(control)
+			t.xOffset = container:GetLeft() - parent:GetLeft()
+			t.yOffset  = container:GetTop() - parent:GetTop()
+			container:ClearAnchors()
+			container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
+		end)
 		container:Update(t)
 		return nil 
 	end
@@ -27,7 +36,6 @@ local function createProgressBar(parent,t)
 	container:SetHandler("OnMoveStop", function(control)
         t.xOffset = container:GetLeft() - parent:GetLeft()
 	    t.yOffset  = container:GetTop() - parent:GetTop()
-		updateLeftSide()
 		container:ClearAnchors()
 		container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
     end)
@@ -37,36 +45,51 @@ local function createProgressBar(parent,t)
 	container:SetMovable(true)
 	container:SetMouseEnabled(true)
 	container.delete = false
-	local function Process(self,previousTarget,groupNumber)
-		local override = {
-			text = groupNumber,
-			barColor = t.barColor,
-			show = true,
-			targetNumber = previousTarget
-		}
-		for _,condition in pairs(t.conditions) do
-			if operators[condition.operator](conditionArgs1[condition.arg1](t),condition.arg2) then conditionResults[condition.result](override,condition.resultArguments) end
-		end
-		if groupNumber then
-			container:SetHidden(DisplayGroupControl(groupNumber))
+	local function Process(self,targetOverride)
+		if HT_processLoad(t.load) then
+			local override = {
+				text = t.text,
+				barColor = t.barColor,
+				textColor = t.textColor,
+				timeColor = t.timeColor,
+				stacksColor = t.stacksColor,
+				backgroundColor = t.backgroundColor,
+				outlineColor = t.outlineColor,
+				show = true,
+				targetNumber = targetOverride or t.targetNumber,
+				target = t.target,
+			}
+			if targetOverride then
+				override.target = "Group"
+			end
+			for _,condition in pairs(t.conditions) do
+				if operators[condition.operator](conditionArgs1[condition.arg1](t,override),condition.arg2) then conditionResults[condition.result](override,condition.resultArguments) end
+			end
+
+			if targetOverride then
+				container:SetHidden(not override.show or DisplayGroupControl(targetOverride))
+			else
+				container:SetHidden(not override.show)
+			end
+			local barX = t.sizeX-t.sizeY
+			local barY = t.sizeY
+			local remainingTime = math.max((t.expiresAt[HT_targets[override.target](override.targetNumber)] or 0) - GetGameTimeSeconds(),0)
+			local duration = math.max((t.duration[HT_targets[override.target](override.targetNumber)] or 0),0)
+			local stacksCount = t.stacks[HT_targets[override.target](override.targetNumber)] or 0
+			if remainingTime == 0 then
+				bar:SetDimensions(0,barY)
+				stacksCount = 0
+			else
+				bar:SetDimensions(barX*(remainingTime/duration),barY)
+			end
+			--d(remainingTime)
+			bar:SetColor(unpack(override.barColor))
+			timer:SetText(getDecimals(remainingTime,t.decimals))
+			label:SetText(override.text)
+			stacks:SetText(stacksCount)
 		else
-			container:SetHidden(not override.show)
+			container:SetHidden(true)
 		end
-		local barX = t.sizeX-t.sizeY
-		local barY = t.sizeY
-		local remainingTime = math.max((t.expiresAt[HT_targets[t.target](override.targetNumber)] or 0) - GetGameTimeSeconds(),0)
-		local duration = math.max((t.duration[HT_targets[t.target](override.targetNumber)] or 0),0)
-		local stacksCount = t.stacks[HT_targets[t.target](override.targetNumber)] or 0
-		if remainingTime == 0 then
-			bar:SetDimensions(0,barY)
-			stacksCount = 0
-		else
-			bar:SetDimensions(barX*(remainingTime/duration),barY)
-		end
-		bar:SetColor(unpack(override.barColor))
-		timer:SetText(getDecimals(remainingTime,t.decimals))
-		label:SetText(override.text)
-		stacks:SetText(stacksCount)
 	end
 
 
@@ -75,7 +98,16 @@ local function createProgressBar(parent,t)
 	local function Update(self,t,groupAnchor)
 		if t.parent == "HT_Trackers" and not container.delete then
 			EVENT_MANAGER:RegisterForUpdate("HT_ProgressBar"..t.name, 100,Process)
+			
 		end
+
+		for key,event in pairs(t.events) do
+			for _,ID in pairs(t.IDs) do
+				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.argument1 or 0)
+			end
+		end
+
+
 		container:SetDimensions(t.sizeX,t.sizeY)
 		icon:SetDimensions(t.sizeY,t.sizeY)
 		icon:SetTexture(t.icon)
@@ -124,10 +156,10 @@ local function createProgressBar(parent,t)
 
 		if t.parent == "HT_Trackers" then
 			container:SetAnchor(TOPLEFT,HT_Trackers,TOPLEFT,t.xOffset,t.yOffset)
-		elseif HTSV.trackers[t.parent].type == "Group Member" and groupAnchor then
-			container:SetAnchor(TOPLEFT,HT_findContainer(HTSV.trackers[t.parent]):GetNamedChild(HTSV.trackers[t.parent].name.."Group"..groupAnchor),TOPLEFT,t.xOffset,t.yOffset)
+		elseif getTrackerFromName(t.parent,HTSV.trackers).type == "Group Member" and groupAnchor then
+			container:SetAnchor(TOPLEFT,HT_findContainer(getTrackerFromName(t.parent,HTSV.trackers)):GetNamedChild(getTrackerFromName(t.parent,HTSV.trackers).name.."Group"..groupAnchor),TOPLEFT,t.xOffset,t.yOffset)
 		else
-			container:SetAnchor(TOPLEFT,HT_findContainer(HTSV.trackers[t.parent]),TOPLEFT,t.xOffset,t.yOffset)
+			container:SetAnchor(TOPLEFT,HT_findContainer(getTrackerFromName(t.parent,HTSV.trackers)),TOPLEFT,t.xOffset,t.yOffset)
 		end
 		timer:SetHidden(not t.timer1)
 		stacks:SetHidden(not t.timer2)
@@ -138,7 +170,18 @@ local function createProgressBar(parent,t)
 
 	container.Process = Process
 
+	local function UnregisterEvents(self)
+		for key,event in pairs(t.events) do
+			for _,ID in pairs(t.IDs) do
+				HT_unregisterEventFunctions[event.type]("HT"..key..t.name..ID)
+			end
+		end
+	end
+	container.UnregisterEvents = UnregisterEvents
+
+
 	local function Delete(self)
+		self:UnregisterEvents()
 		EVENT_MANAGER:UnregisterForUpdate("HT_ProgressBar"..t.name, 100)
 		container.delete = true
 		self:SetHidden(true)
@@ -148,7 +191,7 @@ local function createProgressBar(parent,t)
 end
 
 
-
+--[[
 local function createResourceBar(parent,t)
 	local container = createContainer(parent,t.name,t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
 	local backdrop = WM:CreateControl("$(parent)backdrop",container,  CT_BACKDROP,4)
@@ -157,7 +200,6 @@ local function createResourceBar(parent,t)
 	container:SetHandler("OnMoveStop", function(control)
         t.xOffset = container:GetLeft()
 	    t.yOffset  = container:GetTop()
-		updateLeftSide()
 		container:ClearAnchors()
 		container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
     end)
@@ -181,11 +223,11 @@ local function createResourceBar(parent,t)
 		if t.parent == "HT_Trackers" then
 			container:SetAnchor(TOPLEFT,HT_Trackers,TOPLEFT,t.xOffset,t.yOffset)
 		else
-			container:SetAnchor(TOPLEFT,HT_findContainer(HTSV.trackers[t.parent]),TOPLEFT,t.xOffset,t.yOffset)
+			container:SetAnchor(TOPLEFT,HT_findContainer(getTrackerFromName(t.parent,HTSV.trackers)),TOPLEFT,t.xOffset,t.yOffset)
 		end
 	end
 	container.Update = Update
-end
+end]]
 
 
 local function createIconTracker(parent,t)
@@ -196,83 +238,140 @@ local function createIconTracker(parent,t)
 		return nil 
 	end
 	local container = createContainer(parent,t.name.."_Icon Tracker",t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
+	
 	local icon = createTexture(container,"icon",t.sizeX,t.sizeY,1,1,TOPLEFT,TOPLEFT,t.icon)
+	local outline = WM:CreateControl("$(parent)outline",container,  CT_BACKDROP,4)
+	outline:SetAnchor(CENTER,icon,CENTER,0,0)
 	local timer = createLabel(icon,"timer",t.sizeX,t.sizeY/2,0,0,BOTTOM,BOTTOM,"0.0",1,1,t.font,t.fontSize,"thick-outline")
 	local stacks = createLabel(icon,"stacks",t.sizeX,t.sizeY/2,0,0,TOP,TOP,"0.0",1,1,t.font,t.fontSize,"thick-outline")
+	local animationTexture = WM:CreateControl("$(parent)animationTexture",icon,  CT_TEXTURE, 4)
+	animationTexture:SetAnchor(CENTER,icon,CENTER,0,0)
+	animationTexture:SetAnchorFill()
+	animationTexture:SetDrawLayer(1)
+	animationTexture:SetHidden(true)
+	animationTexture:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
+
+	local timeline = ANIMATION_MANAGER:CreateTimeline()
+	local animation = timeline:InsertAnimation(ANIMATION_TEXTURE, animationTexture)
+	animation:SetImageData(64,1)
+	animation:SetFramerate(64)
+	timeline:SetEnabled(true)
+	timeline:SetPlaybackType(ANIMATION_PLAYBACK_LOOP, LOOP_INDEFINITELY)
+	timeline:PlayFromStart()
+
+
 	container:SetHandler("OnMoveStop", function(control)
         t.xOffset = container:GetLeft() - parent:GetLeft()
 	    t.yOffset  = container:GetTop() - parent:GetTop()
-		updateLeftSide()
 		container:ClearAnchors()
 		container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
     end)
-	local outline = WM:CreateControl("$(parent)outline",container,  CT_BACKDROP,4)
-	outline:SetAnchor(CENTER,container,CENTER,0,0)
-	outline:SetCenterColor(0,0,0,0)
+	
 	container.timer = timer
 	container.stacks = stacks
 	container:SetMovable(true)
 	container:SetMouseEnabled(true)
 
 
-	local function Process(override)
-		local override = override or {
-			text = t.text,
-			barColor = t.barColor,
-			show = true,
-			targetNumber = t.targetNumber
-		}
-		for _,condition in pairs(t.conditions) do
-			if operators[condition.operator](conditionArgs1[condition.arg1](t),condition.arg2) then conditionResults[condition.result](override,condition.resultArguments) end
+	local function Process(self,targetOverride)
+		if HT_processLoad(t.load) then
+			
+			local override = {
+				text = t.text,
+				barColor = t.barColor,
+				textColor = t.textColor,
+				timeColor = t.timeColor,
+				stacksColor = t.stacksColor,
+				backgroundColor = t.backgroundColor,
+				outlineColor = t.outlineColor,
+				show = true,
+				targetNumber = targetOverride or t.targetNumber,
+				showProc = false,
+				target = t.target
+			}
+			if targetOverride then
+				override.target = "Group"
+			end
+			for _,condition in pairs(t.conditions) do
+				if operators[condition.operator](conditionArgs1[condition.arg1](t,override),condition.arg2) then conditionResults[condition.result](override,condition.resultArguments) end
+			end
+			if targetOverride then
+				container:SetHidden(not override.show or DisplayGroupControl(targetOverride))
+			else
+				container:SetHidden(not override.show)
+			end
+			local remainingTime = math.max((t.expiresAt[HT_targets[override.target](override.targetNumber)] or 0) - GetGameTimeSeconds(),0)
+			local stacksCount = t.stacks[HT_targets[override.target](override.targetNumber)] or 0
+			if remainingTime == 0 then
+				stacksCount = 0
+			end
+			timer:SetColor(unpack(override.timeColor))
+			timer:SetText(getDecimals(remainingTime,t.decimals))
+			stacks:SetColor(unpack(override.stacksColor))
+			stacks:SetText(stacksCount)
+			icon:SetColor(unpack(override.barColor))
+			animationTexture:SetHidden(not override.showProc)
+		else
+			container:SetHidden(true)
 		end
-		container:SetHidden(not override.show)
-		local remainingTime = math.max((t.expiresAt[HT_targets[t.target]()] or 0) - GetGameTimeSeconds(),0)
-		local stacksCount = t.stacks[HT_targets[t.target]()] or 0
-		if remainingTime == 0 then
-			stacksCount = 0
-		end
-		timer:SetColor(unpack(t.timeColor))
-		timer:SetText(getDecimals(remainingTime,t.decimals))
-		stacks:SetColor(unpack(t.stacksColor))
-		stacks:SetText(stacksCount)
 	end
 
 
-	local function Update(self,t)
-		if t.parent == "HT_Trackers" then
-			EVENT_MANAGER:RegisterForUpdate("HT_IconTracker"..t.name, 100,Process)
+	local function Update(self,data,groupAnchor)
+		if data.parent == "HT_Trackers" then
+			EVENT_MANAGER:RegisterForUpdate("HT_IconTracker"..data.name, 100,Process)
+			
 		end
-		container:SetDimensions(t.sizeX,t.sizeY)
-		icon:SetDimensions(t.sizeX,t.sizeY)
-		icon:SetTexture(t.icon)
-		outline:SetDimensions(t.sizeX+(t.outlineThickness*2),t.sizeY+(t.outlineThickness*2))
-		outline:SetEdgeColor(unpack(t.outlineColor))
-		outline:SetEdgeTexture("",  t.outlineThickness, t.outlineThickness)
-		timer:SetFont(string.format("$(%s)|$(KB_%s)|%s",t.font, t.fontSize,t.fontWeight))
-		stacks:SetFont(string.format("$(%s)|$(KB_%s)|%s",t.font, t.fontSize, t.fontWeight))
+
+		for key,event in pairs(data.events) do
+			for _,ID in pairs(data.IDs) do
+				HT_eventFunctions[event.type]("HT"..key..data.name..ID,ID,t,event.argument1 or 0)
+			end
+		end
+
+
+		container:SetDimensions(data.sizeX,data.sizeY)
+		icon:SetDimensions(data.sizeX,data.sizeY)
+		icon:SetTexture(data.icon)
+		outline:SetDimensions(data.sizeX+(data.outlineThickness*2),data.sizeY+(data.outlineThickness*2))
+		outline:SetEdgeColor(unpack(data.outlineColor))
+		outline:SetCenterColor(unpack(data.backgroundColor))
+		outline:SetEdgeTexture("",  data.outlineThickness, data.outlineThickness)
+		timer:SetFont(string.format("$(%s)|$(KB_%s)|%s",data.font, data.fontSize,data.fontWeight))
+		stacks:SetFont(string.format("$(%s)|$(KB_%s)|%s",data.font, data.fontSize, data.fontWeight))
 		container:ClearAnchors()
-		if t.parent == "HT_Trackers" then
-			container:SetAnchor(TOPLEFT,HT_Trackers,TOPLEFT,t.xOffset,t.yOffset)
+		if data.parent == "HT_Trackers" then
+			container:SetAnchor(TOPLEFT,HT_Trackers,TOPLEFT,data.xOffset,data.yOffset)
+		elseif getTrackerFromName(data.parent,HTSV.trackers).type == "Group Member" and groupAnchor then
+			container:SetAnchor(TOPLEFT,HT_findContainer(getTrackerFromName(data.parent,HTSV.trackers)):GetNamedChild(getTrackerFromName(data.parent,HTSV.trackers).name.."Group"..groupAnchor),TOPLEFT,data.xOffset,data.yOffset)
 		else
-			container:SetAnchor(TOPLEFT,HT_findContainer(HTSV.trackers[t.parent]),TOPLEFT,t.xOffset,t.yOffset)
+			container:SetAnchor(TOPLEFT,HT_findContainer(getTrackerFromName(data.parent,HTSV.trackers)),TOPLEFT,data.xOffset,data.yOffset)
 		end
-		if t.timer1 and t.timer2 then
-			timer:SetDimensions(t.sizeX,t.sizeY/2)
-			stacks:SetDimensions(t.sizeX,t.sizeY/2)
+		if data.timer1 and data.timer2 then
+			timer:SetDimensions(data.sizeX,data.sizeY/2)
+			stacks:SetDimensions(data.sizeX,data.sizeY/2)
 		else
-			timer:SetDimensions(t.sizeX,t.sizeY)
-			stacks:SetDimensions(t.sizeX,t.sizeY)
+			timer:SetDimensions(data.sizeX,data.sizeY)
+			stacks:SetDimensions(data.sizeX,data.sizeY)
 		end
-		timer:SetHidden(not t.timer1)
-		stacks:SetHidden(not t.timer2)
+		timer:SetHidden(not data.timer1)
+		stacks:SetHidden(not data.timer2)
 	end
 	container.Update = Update
 	container:Update(t)
 	container.Process = Process
 	
-
+	local function UnregisterEvents(self)
+		for key,event in pairs(t.events) do
+			for _,ID in pairs(t.IDs) do
+				HT_unregisterEventFunctions[event.type]("HT"..key..t.name..ID)
+			end
+		end
+	end
+	container.UnregisterEvents = UnregisterEvents
 
 	local function Delete(self)
+		self:UnregisterEvents()
 		EVENT_MANAGER:UnregisterForUpdate("HT_IconTracker"..t.name, 100)
 		self:SetHidden(true)
 	end
@@ -286,16 +385,39 @@ local function createGroup(parent,t,i)
 	if parent:GetNamedChild(t.name.."_Group"..(i or "")) then 
 		local container = parent:GetNamedChild(t.name.."_Group")
 		container:SetHidden(false)
+		container:SetHandler("OnMoveStop", function(control)
+			if i then
+				t.xOffset = container:GetLeft() - HT_3D:GetNamedChild(i):GetLeft()
+				t.yOffset  = container:GetTop() - HT_3D:GetNamedChild(i):GetTop()
+				container:ClearAnchors()
+				container:SetAnchor(TOPLEFT,HT_3D:GetNamedChild(i),TOPLEFT,t.xOffset,t.yOffset)
+				HT_findContainer(t):Update(t)
+			else
+				t.xOffset = container:GetLeft() - parent:GetLeft()
+				t.yOffset  = container:GetTop() - parent:GetTop()
+				container:ClearAnchors()
+				container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
+			end
+		
+		end)
 		container:Update(t)
 		return nil 
 	end
 	local container = createContainer(parent,t.name.."_Group"..(i or ""),t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
 	container:SetHandler("OnMoveStop", function(control)
-        t.xOffset = container:GetLeft()
-	    t.yOffset  = container:GetTop()
-		updateLeftSide()
-		container:ClearAnchors()
-		container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
+		if i then
+			t.xOffset = container:GetLeft() - HT_3D:GetNamedChild(i):GetLeft()
+			t.yOffset  = container:GetTop() - HT_3D:GetNamedChild(i):GetTop()
+			container:ClearAnchors()
+			container:SetAnchor(TOPLEFT,HT_3D:GetNamedChild(i),TOPLEFT,t.xOffset,t.yOffset)
+			HT_findContainer(t):Update(t)
+		else
+			t.xOffset = container:GetLeft() - parent:GetLeft()
+			t.yOffset  = container:GetTop() - parent:GetTop()
+			container:ClearAnchors()
+			container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
+		end
+		
     end)
 	local backdrop = WM:CreateControl("$(parent)backdrop",container,  CT_BACKDROP, 4)
 
@@ -303,33 +425,58 @@ local function createGroup(parent,t,i)
 	container:SetMovable(true)
 	container:SetMouseEnabled(true)
 	for _,childName in pairs(t.children) do
-		initializeTrackerFunctions[HTSV.trackers[childName].type](container,HTSV.trackers[childName])
+		initializeTrackerFunctions[childName.type](container,childName)
 	end
 
-	local function Process(previousOverride)
-		local override = {
-			text = t.text,
-			barColor = t.barColor,
-			show = true,
-			targetNumber = t.targetNumber
-		}
-		for _,condition in pairs(t.conditions) do
-			if operators[condition.operator](conditionArgs1[condition.arg1](t),condition.arg2) then conditionResults[condition.result](override,condition.resultArguments) end
-		end
-		container:SetHidden(DisplayGroupControl(i))
-		--container:SetHidden(not override.show)
-		for _,childName in pairs(t.children) do
-			HT_findContainer(HTSV.trackers[childName],i):Process(i or 6,i)
+	local function Process(self,targetOverride)
+		if HT_processLoad(t.load) then
+			local override = {
+				text = t.text,
+				barColor = t.barColor,
+				textColor = t.textColor,
+				timeColor = t.timeColor,
+				stacksColor = t.stacksColor,
+				backgroundColor = t.backgroundColor,
+				outlineColor = t.outlineColor,
+				show = true,
+				targetNumber = targetOverride or i or t.targetNumber
+			}
+			for _,condition in pairs(t.conditions) do
+				if operators[condition.operator](conditionArgs1[condition.arg1](t,override),condition.arg2) then conditionResults[condition.result](override,condition.resultArguments) end
+			end
+
+			if i then
+				container:SetHidden(not override.show or DisplayGroupControl(i))
+				override.target = "Group"
+			else
+				container:SetHidden(not override.show)
+			end
+
+			for _,childName in pairs(t.children) do
+				HT_findContainer(childName,i):Process(i)
 			
+			end
+		else
+			container:SetHidden(true)
 		end
 	end
 	local function Update(self,t,groupAnchor)
 		for _,childName in pairs(t.children) do
-			if not HT_findContainer(HTSV.trackers[childName],i) then initializeTrackerFunctions[HTSV.trackers[childName].type](container,HTSV.trackers[childName]) end
+			if not HT_findContainer(childName,i) then initializeTrackerFunctions[childName.type](container,childName) end
 		end
 		if t.parent == "HT_Trackers" then
 			EVENT_MANAGER:RegisterForUpdate("HT_Group"..t.name..(i or ""), 100,Process)
+			
 		end
+
+		for key,event in pairs(t.events) do
+			for _,ID in pairs(t.IDs) do
+				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.argument1 or 0)
+			end
+		end
+
+
+
 		container:SetDimensions(t.sizeX,t.sizeY)
 		container:ClearAnchors()
 		backdrop:SetCenterColor(unpack(t.backgroundColor))
@@ -340,27 +487,40 @@ local function createGroup(parent,t,i)
 		backdrop:SetEdgeTexture("",  t.outlineThickness, t.outlineThickness)
 
 		if groupAnchor then
-			container:SetAnchor(CENTER,HT_3D:GetNamedChild(groupAnchor),CENTER,t.xOffset,t.yOffset)
+			container:SetAnchor(TOPLEFT,HT_3D:GetNamedChild(groupAnchor),TOPLEFT,t.xOffset,t.yOffset)
 			container:SetHidden(DisplayGroupControl(groupAnchor))
 		elseif t.parent == "HT_Trackers" then
 			container:SetAnchor(TOPLEFT,HT_Trackers,TOPLEFT,t.xOffset,t.yOffset)
 		else
-			container:SetAnchor(TOPLEFT,HT_findContainer(HTSV.trackers[t.parent]),TOPLEFT,t.xOffset,t.yOffset)
+			container:SetAnchor(TOPLEFT,HT_findContainer(getTrackerFromName(t.parent,HTSV.trackers)),TOPLEFT,t.xOffset,t.yOffset)
 		end
 		for _,childName in pairs(t.children) do
-			HT_findContainer(HTSV.trackers[childName],i):Update(HTSV.trackers[childName],groupAnchor)
+			HT_findContainer(childName,i):Update(childName,groupAnchor)
 		end
 	end
 	container.Update = Update
 	container:Update(t)
 	container.Process = Process
-	
-	
 
+	local function UnregisterEvents(self)
+		for key,event in pairs(t.events) do
+			for _,ID in pairs(t.IDs) do
+				HT_unregisterEventFunctions[event.type]("HT"..key..t.name..ID)
+			end
+		end
+		for _,childName in pairs(t.children) do
+			HT_findContainer(childName,i):UnregisterEvents()
+		end
+	end
+	container.UnregisterEvents = UnregisterEvents
 
 	local function Delete(self)
+		self:UnregisterEvents()
 		EVENT_MANAGER:UnregisterForUpdate("HT_Group"..t.name..(i or ""), 100)
 		self:SetHidden(true)
+		for _,childName in pairs(t.children) do
+			HT_findContainer(childName,i):Delete()
+		end
 	end
 	container.Delete = Delete
 	return container
@@ -376,14 +536,18 @@ local function createGroupMemberGroup(parent,t)
 	local container = createContainer(parent,t.name.."_Group Member",0,0,0,0,TOPLEFT,TOPLEFT)
 	container.group = {}
 	for i=1,12 do
-		local newGroup = createGroup(HT_Trackers,t,i)
+		local newGroup = createGroup(parent,t,i)
 
 		container.group[i] = newGroup
 	end
 
-	local function Process(override)
-		for i=1,12 do 
-			container.group[i]:Process(override)
+	local function Process()
+		if HT_processLoad(t.load) then
+			for i=1,12 do 
+				container.group[i]:Process()
+			end
+		else
+			container:SetHidden(true)
 		end
 	end
 	container.Process = Process
@@ -399,6 +563,13 @@ local function createGroupMemberGroup(parent,t)
 			container.group[i]:Delete()
 		end
 	end
+
+	local function UnregisterEvents(self)
+		for i=1,12 do 
+			container.group[i]:UnregisterEvents()
+		end
+	end
+	container.UnregisterEvents = UnregisterEvents
 	container.Delete = Delete
 	return container
 end

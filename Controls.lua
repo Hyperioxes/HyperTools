@@ -45,6 +45,17 @@ function createCheckbox(parent,name,sizeX,sizeY,xOffset,yOffset,fromAnchor,toAnc
 	else
 		checkbox:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
 	end
+
+	local function Update(self,newValue)
+		checkbox.data = newValue
+		if checkbox.data then
+			checkbox:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
+		else
+			checkbox:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
+		end
+	end
+	checkbox.Update = Update
+
 	return checkbox
 end
 
@@ -157,6 +168,7 @@ function createEditbox(parent,name,sizeX,sizeY,xOffset,yOffset,fromAnchor,toAnch
 	backdrop:SetAnchorFill()
 	--control:SetResizeToFitDescendents(true)
 	editbox:SetTextType(textType or TEXT_TYPE_ALL)
+	editbox:SetMaxInputChars(30000)
 	return control
 end
 

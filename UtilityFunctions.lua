@@ -17,14 +17,15 @@ end
 
 
 function HT_findContainer(tracker,i)
-	if tracker.parent == "HT_Trackers" then
-		if tracker.type == "Group Member" and i then
-			return HT_Trackers:GetNamedChild(tracker.name.."_Group"..i)
-		else
-			return HT_Trackers:GetNamedChild(tracker.name.."_"..tracker.type)
-		end
+	
+	if tracker == HTSV.trackers then
+		return HT_Trackers
 	end
-	return HT_findContainer(HTSV.trackers[tracker.parent],i):GetNamedChild(tracker.name.."_"..tracker.type)
+	if tracker.type == "Group Member" and i then
+		return HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers),i):GetNamedChild(tracker.name.."_Group"..i)
+	else
+		return HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers),i):GetNamedChild(tracker.name.."_"..tracker.type)
+	end
 end
 
 function HT_removeGender(name)
@@ -59,7 +60,7 @@ function HT_checkIfItemSetsEquipped(requiredNumberOfPieces,itemSetTable)
 	end
 	for _,itemSet in pairs(itemSetTable) do
 		local numOfItems = 0
-		_,_,_,numOfItems = GetItemLinkSetInfo(itemSetitemSet,true)
+		_,_,_,numOfItems = GetItemLinkSetInfo(itemSet,true)
 		if numOfItems>=requiredNumberOfPieces then
 			return true
 		end
@@ -87,11 +88,12 @@ function HT_pickAnyKey(array)
 	return "none"
 end
 
-function HT_pickAnyElement(array)
+
+function HT_pickAnyElement(array,noneOverride)
 	for _,v in pairs(array) do
 		return v
 	end
-	return "none"
+	return noneOverride or "none"
 end
 
 function HT_deepcopy(orig)
@@ -109,13 +111,12 @@ function HT_deepcopy(orig)
     return copy
 end
 
-function HT_generateNewNate(name,number)
-	for k,v in pairs(HTSV.trackers) do
-		if k==name..number then
-			return HT_generateNewNate(name,number+1)
-		end
+function HT_generateNewName(name,number)
+	local newName = name.."("..number..")"
+	if getTrackerFromName(newName,HTSV.trackers) then
+		return HT_generateNewName(name,number+1)
 	end
-	return name..number
+	return newName
 end
 
 function HT_nullify(t)
@@ -124,4 +125,7 @@ function HT_nullify(t)
 	t.duration = {}
 	t.max = 0
 	t.current = 0
+	for k,v in pairs(t.children) do
+		HT_nullify(v)
+	end
 end

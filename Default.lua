@@ -36,8 +36,8 @@ HT_trackers = {
 	conditions = {
 		[1] = {
 			arg1 = "Remaining Time",
-			arg2 = 2,
-			operator = "==",
+			arg2 = 0,
+			operator = "<",
 			result = "Hide Tracker",
 			resultArguments = {1,1,1,1},
 		}
@@ -47,7 +47,8 @@ HT_trackers = {
 	stacks = {},
 	events = {
 		[1] = {
-		type = "Update Effect Duration from Event"
+		type = "Get Effect Duration",
+		argument1 = 8,
 		},
 	},
 	load = {

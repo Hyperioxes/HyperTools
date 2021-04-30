@@ -1,11 +1,11 @@
-local function processLoad(trackerLoad)
-	--if trackerLoad.never then return false end
-	--if trackerLoad.inCombat and not IsUnitInCombat("player") then return false end
-	--if trackerLoad.role ~= GetGroupMemberSelectedRole("player") and trackerLoad.role ~= "Any" then return false end
-	--if trackerLoad.class ~= GetUnitClass("player") and trackerLoad.class ~= "Any" then return false end
-	--if not HT_checkIfSkillSlotted(trackerLoad.skills) then return false end
-	--if not HT_checkIfItemSetsEquipped(2,trackerLoad.itemSets) then return false end
-	--if not HT_checkIfZone(trackerLoad.zones) then return false end
+function HT_processLoad(trackerLoad)
+	if trackerLoad.never then return false end
+	if trackerLoad.inCombat and not IsUnitInCombat("player") then return false end
+	if trackerLoad.role ~= GetGroupMemberSelectedRole("player") and trackerLoad.role ~= 0 and GetGroupMemberSelectedRole("player") ~= 0 then return false end
+	if trackerLoad.class ~= GetUnitClass("player") and trackerLoad.class ~= "Any" then return false end
+	if not HT_checkIfSkillSlotted(trackerLoad.skills) then return false end
+	if not HT_checkIfItemSetsEquipped(1,trackerLoad.itemSets) then return false end
+	if not HT_checkIfZone(trackerLoad.zones) then return false end
 	return true
 end
 
@@ -114,8 +114,21 @@ function HT_InitializeGlobalControl()
 		end
 	end
 
+	--[[local texture = WM:CreateControl("$(parent)texture",HT_Trackers,  CT_TEXTURE, 4)
+	texture:SetDimensions(100,100)
+	texture:SetAnchor(TOPLEFT,HT_Trackers,TOPLEFT,0,0)
+	texture:SetHidden(false)
+	texture:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
+	texture:SetMovable(true)
+    texture:SetMouseEnabled(true)
 
-
+	local timeline = ANIMATION_MANAGER:CreateTimeline()
+	local animation = timeline:InsertAnimation(ANIMATION_TEXTURE, texture)
+	animation:SetImageData(64,1)
+	animation:SetFramerate(64)
+	timeline:SetEnabled(true)
+	timeline:SetPlaybackType(ANIMATION_PLAYBACK_LOOP, LOOP_INDEFINITELY)
+	timeline:PlayFromStart()]]
 
 
 	HT_Trackers:ClearAnchors()
