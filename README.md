@@ -1,5 +1,6 @@
 # HyperTools
 Hyper Tools is a framework for Elder Scrolls Online that allows you to create and display graphics that help you track buffs, debuffs and other important information. The addon is somewhat similar in functionality to AuraMastery though my main inspiration was WoW addon WeakAuras2. You can also export trackers to share them with other people and import pre-made trackers
+
 [Addon's page on EsoUI](https://www.esoui.com/downloads/info3057-HyperTools.html)
 
 
