@@ -6,6 +6,7 @@ function HT_processLoad(trackerLoad)
 	if not HT_checkIfSkillSlotted(trackerLoad.skills) then return false end
 	if not HT_checkIfItemSetsEquipped(1,trackerLoad.itemSets) then return false end
 	if not HT_checkIfZone(trackerLoad.zones) then return false end
+	if not HT_checkIfBoss(trackerLoad.bosses) then return false end 
 	return true
 end
 
@@ -112,6 +113,10 @@ function HT_InitializeGlobalControl()
 		if v.parent == "HT_Trackers" then
 			initializeTrackerFunctions[v.type](HT_Trackers,v)
 		end
+	end
+
+	for k,v in pairs(HTSV.trackers) do
+		HT_changeLock(v,false)
 	end
 
 	--[[local texture = WM:CreateControl("$(parent)texture",HT_Trackers,  CT_TEXTURE, 4)

@@ -13,33 +13,38 @@ end
 
 
 local function createProgressBar(parent,t)
+
+	local container,bar,backdrop,label,icon,animationTexture,timer,stacks,iconOutline
+
+
 	if parent:GetNamedChild(t.name.."_Progress Bar") then 
-		local container = parent:GetNamedChild(t.name.."_Progress Bar")
-		container:SetHidden(false)
-		container.delete = false
-		container:SetHandler("OnMoveStop", function(control)
-			t.xOffset = container:GetLeft() - parent:GetLeft()
-			t.yOffset  = container:GetTop() - parent:GetTop()
-			container:ClearAnchors()
-			container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
-		end)
-		container:Update(t)
-		return nil 
+		container = parent:GetNamedChild(t.name.."_Progress Bar")
+		backdrop = container:GetNamedChild("backdrop")
+		icon = container:GetNamedChild("icon")
+		bar = icon:GetNamedChild("bar")
+		label = container:GetNamedChild("label")
+		timer = container:GetNamedChild("timer")
+		stacks = icon:GetNamedChild("stacks")
+		iconOutline = icon:GetNamedChild("iconOutline")
+		
+	else
+		container = createContainer(parent,t.name.."_Progress Bar",t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
+		backdrop = WM:CreateControl("$(parent)backdrop",container,  CT_BACKDROP,4)
+		icon = createTexture(container,"icon",t.sizeY-(t.outlineThickness*2),t.sizeY-(t.outlineThickness*2),0,0,CENTER,CENTER,t.icon)
+		bar = createTexture(icon,"bar",t.sizeX-t.sizeY-t.outlineThickness,t.sizeY,t.outlineThickness,0,LEFT,RIGHT)
+		label = createLabel(container,"label",t.sizeX-t.sizeY,t.sizeY,(t.sizeX/20)+t.sizeY,0,LEFT,LEFT,t.text,0,1,t.font,t.fontSize,"thick-outline")
+		timer = createLabel(container,"timer",t.sizeX-t.sizeY,t.sizeY,t.sizeX/(-20),0,RIGHT,RIGHT,"0.0",2,1,t.font,t.fontSize,"thick-outline")
+		stacks = createLabel(icon,"stacks",t.sizeY-t.outlineThickness,t.sizeY-t.outlineThickness,0,0,TOPLEFT,TOPLEFT,"0",1,1,t.font,t.fontSize,"thick-outline")
+		iconOutline = WM:CreateControl("$(parent)iconOutline",icon,  CT_TEXTURE,4)
 	end
-	local container = createContainer(parent,t.name.."_Progress Bar",t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
-	local backdrop = WM:CreateControl("$(parent)backdrop",container,  CT_BACKDROP,4)
-	local icon = createTexture(container,"icon",t.sizeY-(t.outlineThickness*2),t.sizeY-(t.outlineThickness*2),0,0,CENTER,CENTER,t.icon)
-	local bar = createTexture(icon,"bar",t.sizeX-t.sizeY-t.outlineThickness,t.sizeY,t.outlineThickness,0,LEFT,RIGHT)
-	local label = createLabel(container,"label",t.sizeX-t.sizeY,t.sizeY,(t.sizeX/20)+t.sizeY,0,LEFT,LEFT,t.text,0,1,t.font,t.fontSize,"thick-outline")
-	local timer = createLabel(container,"timer",t.sizeX-t.sizeY,t.sizeY,t.sizeX/(-20),0,RIGHT,RIGHT,"0.0",2,1,t.font,t.fontSize,"thick-outline")
-	local stacks = createLabel(icon,"stacks",t.sizeY-t.outlineThickness,t.sizeY-t.outlineThickness,0,0,TOPLEFT,TOPLEFT,"0",1,1,t.font,t.fontSize,"thick-outline")
+	
 	container:SetHandler("OnMoveStop", function(control)
         t.xOffset = container:GetLeft() - parent:GetLeft()
 	    t.yOffset  = container:GetTop() - parent:GetTop()
 		container:ClearAnchors()
 		container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
     end)
-	local iconOutline = WM:CreateControl("$(parent)iconOutline",icon,  CT_TEXTURE,4)
+	
 	iconOutline:SetAnchor(LEFT,icon,RIGHT,0,0)
 	iconOutline:SetTexture("")
 	container:SetMovable(true)
@@ -103,7 +108,7 @@ local function createProgressBar(parent,t)
 
 		for key,event in pairs(t.events) do
 			for _,ID in pairs(t.IDs) do
-				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.argument1 or 0)
+				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.arguments)
 			end
 		end
 
@@ -187,6 +192,10 @@ local function createProgressBar(parent,t)
 		self:SetHidden(true)
 	end
 	container.Delete = Delete
+
+
+	
+
 	return container
 end
 
@@ -230,35 +239,57 @@ local function createResourceBar(parent,t)
 end]]
 
 
+
+
+--layer
+--level
+--tier
+
 local function createIconTracker(parent,t)
-	if parent:GetNamedChild(t.name.."_Icon Tracker") then 
-		local container = parent:GetNamedChild(t.name.."_Icon Tracker")
-		container:SetHidden(false)
-		container:Update(t)
-		return nil 
-	end
-	local container = createContainer(parent,t.name.."_Icon Tracker",t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
 	
-	local icon = createTexture(container,"icon",t.sizeX,t.sizeY,1,1,TOPLEFT,TOPLEFT,t.icon)
-	local outline = WM:CreateControl("$(parent)outline",container,  CT_BACKDROP,4)
-	outline:SetAnchor(CENTER,icon,CENTER,0,0)
-	local timer = createLabel(icon,"timer",t.sizeX,t.sizeY/2,0,0,BOTTOM,BOTTOM,"0.0",1,1,t.font,t.fontSize,"thick-outline")
-	local stacks = createLabel(icon,"stacks",t.sizeX,t.sizeY/2,0,0,TOP,TOP,"0.0",1,1,t.font,t.fontSize,"thick-outline")
-	local animationTexture = WM:CreateControl("$(parent)animationTexture",icon,  CT_TEXTURE, 4)
+	local container,icon,background,animationTexture,timer,stacks
+
+	if parent:GetNamedChild(t.name.."_Icon Tracker") then 
+		container = parent:GetNamedChild(t.name.."_Icon Tracker")
+		icon = container:GetNamedChild("icon")
+		background = container:GetNamedChild("background")
+		timer = icon:GetNamedChild("timer")
+		stacks = icon:GetNamedChild("stacks")
+		animationTexture = icon:GetNamedChild("animationTexture")
+		outline = container:GetNamedChild("outline")
+	else
+		container = createContainer(parent,t.name.."_Icon Tracker",t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
+		icon = createTexture(container,"icon",t.sizeX,t.sizeY,1,1,TOPLEFT,TOPLEFT,t.icon)
+		background = WM:CreateControl("$(parent)background",container,  CT_TEXTURE,4)
+		timer = createLabel(icon,"timer",t.sizeX,t.sizeY/2,0,0,BOTTOM,BOTTOM,"0.0",1,1,t.font,t.fontSize,"thick-outline")
+		stacks = createLabel(icon,"stacks",t.sizeX,t.sizeY/2,0,0,TOP,TOP,"0.0",1,1,t.font,t.fontSize,"thick-outline")
+		animationTexture = WM:CreateControl("$(parent)animationTexture",icon,  CT_TEXTURE, 4)
+		outline = WM:CreateControl("$(parent)outline",container,  CT_BACKDROP,4)
+	end
+	local timeline = ANIMATION_MANAGER:CreateTimeline()
+	local animation = timeline:InsertAnimation(ANIMATION_TEXTURE, animationTexture)
+	background:ClearAnchors()
+	background:SetAnchor(CENTER,icon,CENTER,0,0)
+	background:SetTexture("HyperTools/icons/regularBackground.dds")
+	--background:SetDrawLayer(2)
+	--icon:SetDrawLayer(3)
+
+	animationTexture:ClearAnchors()
 	animationTexture:SetAnchor(CENTER,icon,CENTER,0,0)
 	animationTexture:SetAnchorFill()
-	animationTexture:SetDrawLayer(1)
+	--animationTexture:SetDrawTier(2)
 	animationTexture:SetHidden(true)
 	animationTexture:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
 
-	local timeline = ANIMATION_MANAGER:CreateTimeline()
-	local animation = timeline:InsertAnimation(ANIMATION_TEXTURE, animationTexture)
+	
 	animation:SetImageData(64,1)
 	animation:SetFramerate(64)
 	timeline:SetEnabled(true)
 	timeline:SetPlaybackType(ANIMATION_PLAYBACK_LOOP, LOOP_INDEFINITELY)
 	timeline:PlayFromStart()
 
+	outline:SetAnchor(CENTER,icon,CENTER,0,0)
+	--outline:SetDrawTier(3)
 
 	container:SetHandler("OnMoveStop", function(control)
         t.xOffset = container:GetLeft() - parent:GetLeft()
@@ -318,25 +349,27 @@ local function createIconTracker(parent,t)
 
 
 	local function Update(self,data,groupAnchor)
-		if data.parent == "HT_Trackers" then
+		--if data.parent == "HT_Trackers" then
 			EVENT_MANAGER:RegisterForUpdate("HT_IconTracker"..data.name, 100,Process)
 			
-		end
+		--end
 
 		for key,event in pairs(data.events) do
 			for _,ID in pairs(data.IDs) do
-				HT_eventFunctions[event.type]("HT"..key..data.name..ID,ID,t,event.argument1 or 0)
+				HT_eventFunctions[event.type]("HT"..key..data.name..ID,ID,t,event.arguments)
 			end
 		end
 
-
+		container:SetDrawLayer(data.drawLevel)
 		container:SetDimensions(data.sizeX,data.sizeY)
 		icon:SetDimensions(data.sizeX,data.sizeY)
 		icon:SetTexture(data.icon)
 		outline:SetDimensions(data.sizeX+(data.outlineThickness*2),data.sizeY+(data.outlineThickness*2))
 		outline:SetEdgeColor(unpack(data.outlineColor))
-		outline:SetCenterColor(unpack(data.backgroundColor))
+		outline:SetCenterColor(0,0,0,0)
 		outline:SetEdgeTexture("",  data.outlineThickness, data.outlineThickness)
+		background:SetDimensions(data.sizeX*1.2,data.sizeY*1.2)
+		background:SetColor(unpack(data.backgroundColor))
 		timer:SetFont(string.format("$(%s)|$(KB_%s)|%s",data.font, data.fontSize,data.fontWeight))
 		stacks:SetFont(string.format("$(%s)|$(KB_%s)|%s",data.font, data.fontSize, data.fontWeight))
 		container:ClearAnchors()
@@ -377,33 +410,24 @@ local function createIconTracker(parent,t)
 	end
 	container.Delete = Delete
 
+
 	return container
 end
 
 
 local function createGroup(parent,t,i)
+
+	local container,backdrop
+
 	if parent:GetNamedChild(t.name.."_Group"..(i or "")) then 
-		local container = parent:GetNamedChild(t.name.."_Group")
-		container:SetHidden(false)
-		container:SetHandler("OnMoveStop", function(control)
-			if i then
-				t.xOffset = container:GetLeft() - HT_3D:GetNamedChild(i):GetLeft()
-				t.yOffset  = container:GetTop() - HT_3D:GetNamedChild(i):GetTop()
-				container:ClearAnchors()
-				container:SetAnchor(TOPLEFT,HT_3D:GetNamedChild(i),TOPLEFT,t.xOffset,t.yOffset)
-				HT_findContainer(t):Update(t)
-			else
-				t.xOffset = container:GetLeft() - parent:GetLeft()
-				t.yOffset  = container:GetTop() - parent:GetTop()
-				container:ClearAnchors()
-				container:SetAnchor(TOPLEFT,parent,TOPLEFT,t.xOffset,t.yOffset)
-			end
-		
-		end)
-		container:Update(t)
-		return nil 
+		container = parent:GetNamedChild(t.name.."_Group"..(i or ""))
+		backdrop = container:GetNamedChild("backdrop")
+	else
+		container = createContainer(parent,t.name.."_Group"..(i or ""),t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
+		backdrop = WM:CreateControl("$(parent)backdrop",container,  CT_BACKDROP, 4)
 	end
-	local container = createContainer(parent,t.name.."_Group"..(i or ""),t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
+
+
 	container:SetHandler("OnMoveStop", function(control)
 		if i then
 			t.xOffset = container:GetLeft() - HT_3D:GetNamedChild(i):GetLeft()
@@ -419,7 +443,7 @@ local function createGroup(parent,t,i)
 		end
 		
     end)
-	local backdrop = WM:CreateControl("$(parent)backdrop",container,  CT_BACKDROP, 4)
+	
 
 
 	container:SetMovable(true)
@@ -471,7 +495,7 @@ local function createGroup(parent,t,i)
 
 		for key,event in pairs(t.events) do
 			for _,ID in pairs(t.IDs) do
-				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.argument1 or 0)
+				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.arguments)
 			end
 		end
 
@@ -523,6 +547,11 @@ local function createGroup(parent,t,i)
 		end
 	end
 	container.Delete = Delete
+
+
+
+
+
 	return container
 end
 
@@ -533,7 +562,16 @@ end
 
 
 local function createGroupMemberGroup(parent,t)
-	local container = createContainer(parent,t.name.."_Group Member",0,0,0,0,TOPLEFT,TOPLEFT)
+
+	local container
+
+	if parent:GetNamedChild(t.name.."_Group Member") then 
+		container = parent:GetNamedChild(t.name.."_Group Member")
+	else
+		container = createContainer(parent,t.name.."_Group Member",0,0,0,0,TOPLEFT,TOPLEFT)
+	end
+
+
 	container.group = {}
 	for i=1,12 do
 		local newGroup = createGroup(parent,t,i)
@@ -571,6 +609,9 @@ local function createGroupMemberGroup(parent,t)
 	end
 	container.UnregisterEvents = UnregisterEvents
 	container.Delete = Delete
+
+
+
 	return container
 end
 

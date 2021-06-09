@@ -15,6 +15,14 @@ function getDecimals(time,number)
 	return time
 end
 
+function getTrackerFromName(name,table)
+	if name == "HT_Trackers" then return HTSV.trackers end
+	for k,v in pairs(table) do
+		if k == name then return v end
+		if getTrackerFromName(name,v.children) then return getTrackerFromName(name,v.children) end
+	end
+end
+
 
 function HT_findContainer(tracker,i)
 	
@@ -25,6 +33,21 @@ function HT_findContainer(tracker,i)
 		return HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers),i):GetNamedChild(tracker.name.."_Group"..i)
 	else
 		return HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers),i):GetNamedChild(tracker.name.."_"..tracker.type)
+	end
+end
+
+function HT_changeLock(t,setTo)
+	if t.name ~= 'none' then
+		if t.parent ~= "HT_Trackers" and getTrackerFromName(t.parent,HTSV.trackers).type == "Group Member" then 
+			for i=1,12 do
+				HT_findContainer(t,i):SetMovable(setTo)
+			end
+		else 
+			HT_findContainer(t):SetMovable(setTo)
+		end
+	end
+	for k,v in pairs(t.children) do
+		HT_changeLock(v,setTo)
 	end
 end
 
@@ -80,6 +103,19 @@ function HT_checkIfZone(zonesTable)
 	end
 	return false
 end
+
+function HT_checkIfBoss(bossesTable)
+	if next(bossesTable) == nil then
+		return true
+	end
+	for _,boss in pairs(bossesTable) do
+		if GetUnitName("boss1") == boss then
+			return true
+		end
+	end
+	return false
+end
+
 
 function HT_pickAnyKey(array)
 	for k,_ in pairs(array) do

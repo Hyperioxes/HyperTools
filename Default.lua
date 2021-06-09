@@ -25,6 +25,7 @@ HT_trackers = {
 	sizeX = 0,
 	sizeY = 0,
 	anchorToGroupMember = true,
+	drawLevel = 0,
 	parent = "none",
 	children = {},
 	xOffset = 0,
@@ -48,7 +49,11 @@ HT_trackers = {
 	events = {
 		[1] = {
 		type = "Get Effect Duration",
-		argument1 = 8,
+		arguments = {
+			cooldown = 8,
+			onlyYourCast = false,
+			overwriteShorterDuration = false,
+		},
 		},
 	},
 	load = {
@@ -59,6 +64,7 @@ HT_trackers = {
 		skills = {},
 		itemSets = {},
 		zones = {},
+		bosses = {},
 	},
 	},
 	},

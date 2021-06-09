@@ -1,37 +1,29 @@
 HT_eventFunctions = {
-	["Get Effect Duration"] = function(name,ID,tracker)
+	["Get Effect Duration"] = function(name,ID,tracker,arguments)
 		EVENT_MANAGER:RegisterForEvent(name,EVENT_EFFECT_CHANGED,function(_,_,_,_,_,_,expireTime,stackCount,_,_,_,_,_,targetName) 
 			targetName = HT_removeGender(targetName)
-			if expireTime > (tracker.expiresAt[targetName] or 0) then
+			if expireTime > (tracker.expiresAt[targetName] or 0) or (not arguments.overwriteShorterDuration) then
 				tracker.expiresAt[targetName] = expireTime
 				tracker.duration[targetName] = expireTime-GetGameTimeSeconds()
 				tracker.stacks[targetName] = stackCount
 			end
 		end) 
 		EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID,ID)
-		--EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_TARGET_COMBAT_UNIT_TYPE,unitType)
+		if arguments.onlyYourCast then
+			EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE,1)
+		end
 	end,
-	["Get Effect Duration only your cast"] = function(name,ID,tracker)
-		EVENT_MANAGER:RegisterForEvent(name,EVENT_EFFECT_CHANGED,function(_,_,_,_,_,_,expireTime,stackCount,_,_,_,_,_,targetName) 
-			targetName = HT_removeGender(targetName)
-			if expireTime > (tracker.expiresAt[targetName] or 0) then
-				tracker.expiresAt[targetName] = expireTime
-				tracker.duration[targetName] = expireTime-GetGameTimeSeconds()
-				tracker.stacks[targetName] = stackCount
-			end
-		end) 
-		EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID,ID)
-		EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE,1)
-	end,
-	["Get Effect Cooldown"] = function(name,ID,tracker,argument1)
+	["Get Effect Cooldown"] = function(name,ID,tracker,arguments)
 		EVENT_MANAGER:RegisterForEvent(name,EVENT_COMBAT_EVENT,function()  
-			tracker.duration[GetUnitName("player")] = argument1
+			tracker.duration[GetUnitName("player")] = arguments.cooldown
 			--if GetGameTimeSeconds() > (tracker.expiresAt[GetUnitName("player")] or 0) then
-				tracker.expiresAt[GetUnitName("player")] = argument1 + GetGameTimeSeconds()
+				tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
 			--end
 		end) 
 		EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID,ID)
-		EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE,1)
+		if arguments.onlyYourCast then
+			EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE,1)
+		end
 	end,
 	--[[["Get Resource Value"] = function(name,ID,tracker)
 		EVENT_MANAGER:RegisterForEvent(name, EVENT_POWER_UPDATE, function(_,player,type,_,current,max,idk)
@@ -47,9 +39,6 @@ HT_eventFunctions = {
 
 HT_unregisterEventFunctions = {
 	["Get Effect Duration"] = function(name)
-		EVENT_MANAGER:UnregisterForEvent(name,EVENT_EFFECT_CHANGED)
-	end,
-	["Get Effect Duration only your cast"] = function(name)
 		EVENT_MANAGER:UnregisterForEvent(name,EVENT_EFFECT_CHANGED)
 	end,
 	--[[["Get Resource Value"] = function(name)
