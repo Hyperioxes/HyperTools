@@ -8,16 +8,7 @@ HT = {
     stacks        = {},
 }
 
-
-
-function OnAddOnLoaded(event, addonName)
-    if addonName ~= HT.name then return end
-    EVENT_MANAGER:UnregisterForEvent(HT.name, EVENT_ADD_ON_LOADED)
-    
-    HTSV = ZO_SavedVars:NewAccountWide("HyperToolsSV",32, nil, HT_trackers)
-
-    -- ADJUSTMENTS FOR OLD SAVED VARIABLES
-
+function HT_adjustDataForNewestVersion(data)
     local function searchThroughTable(t)
         for _,event in pairs(t.events) do
             if not event.arguments then
@@ -37,21 +28,32 @@ function OnAddOnLoaded(event, addonName)
             t.load.bosses = {}
         end
 
+        if not t.cooldownColor then
+            t.cooldownColor = {0,0,0,0.7}
+        end
+
 	    for k,v in pairs(t.children) do
 		    searchThroughTable(v)
 	    end
     end
 
-    for _,t in pairs(HTSV.trackers) do
+    for _,t in pairs(data) do
         searchThroughTable(t)
     end
 
 
 
-    -- ADJUSTMENTS FOR OLD SAVED VARIABLES
+end
 
 
 
+function OnAddOnLoaded(event, addonName)
+    if addonName ~= HT.name then return end
+    EVENT_MANAGER:UnregisterForEvent(HT.name, EVENT_ADD_ON_LOADED)
+    
+    HTSV = ZO_SavedVars:NewAccountWide("HyperToolsSV",32, nil, HT_trackers)
+
+    HT_adjustDataForNewestVersion(HTSV.trackers) --Adjust data for newest version, fill gaps in null data with default values
 
     for _,t in pairs(HTSV.trackers) do
         HT_nullify(t)

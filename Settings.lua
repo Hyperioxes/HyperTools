@@ -55,7 +55,7 @@ local resourcesReverse = {
 	[1] = "Werewolf",
 }
 
-local settingsVisible = false
+HT_settingsVisible = false
 
 
 local function findFreeSlotInTable(table)
@@ -172,7 +172,7 @@ end
 
 local function hideUI()
 	HT_Settings:SetHidden(true)
-	settingsVisible = false
+	HT_settingsVisible = false
 
 	for k,v in pairs(HTSV.trackers) do
 		HT_changeLock(v,false)
@@ -182,7 +182,7 @@ end
 
 local function showUI()
 	HT_Settings:SetHidden(false)
-	settingsVisible = true
+	HT_settingsVisible = true
 
 	for k,v in pairs(HTSV.trackers) do
 		HT_changeLock(v,true)
@@ -193,7 +193,7 @@ SLASH_COMMANDS["/htshow"] = showUI
 
 
 
-local CST -- Currently Selected Tracker
+CST = nil -- Currently Selected Tracker
 local CSE = 1 -- Currently Selected Event
 local CSC = 1 -- Currently Selected Condition
 local CTC = "HT_Trackers"-- Current Top Control
@@ -339,6 +339,7 @@ local function updateDisplayBackground()
 	local drawLevelDropdown = displayBackground:GetNamedChild("drawLevelDropdown")
 	local colorpickerLabelColorpicker = displayBackground:GetNamedChild("colorpickerLabelColorpicker")
 	local colorpickerStacksolorpicker = displayBackground:GetNamedChild("colorpickerStacksolorpicker")
+	local colorpickerCooldownColorpicker = displayBackground:GetNamedChild("colorpickerCooldownColorpicker")
 	local colorpickerTimeColorpicker = displayBackground:GetNamedChild("colorpickerTimeColorpicker")
 	texturePath:SetText(CST.icon)
 	dropdownIDs.choices = CST.IDs
@@ -360,18 +361,19 @@ local function updateDisplayBackground()
 	colorpicker3:SetColor(unpack(CST.backgroundColor))
 	TextPosXEditbox:SetText(math.floor(CST.xOffset))
 	cstYposEditbox:SetText(math.floor(CST.yOffset))
-	if CST.type == "Icon Tracker" then
-		outlineThicknessDropdown:SetHidden(true)
-	else
+	--if CST.type == "Icon Tracker" then
+	--	outlineThicknessDropdown:SetHidden(true)
+	--else
 		outlineThicknessDropdown:SetHidden(false)
 		outlineThicknessDropdown.selection = CST.outlineThickness
 		outlineThicknessDropdown:updateDropdown()
-	end
+	--end
 	inverseCheckbox:Update(CST.inverse)
 	remainingTimeCheckbox:Update(CST.timer1)
 	stacksCheckbox:Update(CST.timer2)
 	colorpickerLabelColorpicker:SetColor(unpack(CST.textColor))
 	colorpickerStacksolorpicker:SetColor(unpack(CST.stacksColor))
+	colorpickerCooldownColorpicker:SetColor(unpack(CST.cooldownColor))
 	colorpickerTimeColorpicker:SetColor(unpack(CST.timeColor))
 	drawLevelDropdown.selection = CST.drawLevel
 	drawLevelDropdown:updateDropdown()
@@ -746,6 +748,13 @@ end
 
 
 local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targetNumber,event)
+	local backroundColorDefault = {0,0,0,0.4}
+	local outlineColorDefault = {0,0,0,1}
+	if type == 'Group' then
+		backroundColorDefault = {0,0,0,0}
+		outlineColorDefault = {0,0,0,0}
+	end
+		
 	if getTrackerFromName(name, HTSV.trackers) then
 		name = HT_generateNewName(name,1)
 	end
@@ -770,10 +779,11 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 	anchorToGroupMember = true,
 	barColor = color,
 	timeColor = {1,1,1,1},
-	backgroundColor = {0,0,0,0.4},
-	outlineColor = {0,0,0,1},
+	backgroundColor = backroundColorDefault,
+	outlineColor = outlineColorDefault,
 	textColor= {1,1,1,1},
 	stacksColor = {1,1,1,1},
+	cooldownColor = {0,0,0,0.7},
 	sizeX = sizeX,
 	sizeY = sizeY,
 	parent = "HT_Trackers",
@@ -817,7 +827,7 @@ end
 
 local function onSceneChange(_,scene)
 	if scene == SCENE_SHOWN then
-		HT_Settings:SetHidden(not settingsVisible)
+		HT_Settings:SetHidden(not HT_settingsVisible)
 		HT_Trackers:SetHidden(false)
 		HT_3D:SetHidden(false)
 	else
@@ -1403,9 +1413,9 @@ function HT_Settings_initializeUI()
 		if importString then
 			importString = string.sub(importString,2,#importString-1)
 			local importedTable = importFromString(importString)
-			importedTable.parent = "HT_Trackers"
 			removeDuplicateNamesFromImportedTable(importedTable,HTSV.trackers)
 			importedTable.parent = "HT_Trackers"
+			HT_adjustDataForNewestVersion({importedTable})
 			HTSV.trackers[importedTable.name] = importedTable
 			initializeTrackerFunctions[importedTable.type](HT_Trackers,importedTable)
 			relocateLeftSide()   
@@ -1556,6 +1566,16 @@ function HT_Settings_initializeUI()
 		if CST.name ~= "none" then
 			if type(color) == "table" then
 				CST.stacksColor = color 
+				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			end
+		end
+	end)
+
+	createLabel(displayBackground,"colorpickerCooldownLabel",70,30,185,380,TOPLEFT,TOPLEFT,"Cooldown",0,1)
+	createColorpicker(displayBackground,"colorpickerCooldownColorpicker",70,30,185,405,TOPLEFT,TOPLEFT,CST.cooldownColor,function(color) 
+		if CST.name ~= "none" then
+			if type(color) == "table" then
+				CST.cooldownColor = color 
 				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end

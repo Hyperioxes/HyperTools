@@ -76,15 +76,30 @@ function HT_checkIfSkillSlotted(skillIDTable)
 		return false,0
 end
 
-
-function HT_checkIfItemSetsEquipped(requiredNumberOfPieces,itemSetTable)
-	if next(itemSetTable) == nil then
+--INPUT: Table of itemLinks
+--OUTPUT: True if any of the item sets in the table is active, False if none of them is active
+function HT_checkIfItemSetsEquipped(itemSetTable)
+	if next(itemSetTable) == nil then --If input table is empty return true
 		return true
 	end
 	for _,itemSet in pairs(itemSetTable) do
 		local numOfItems = 0
-		_,_,_,numOfItems = GetItemLinkSetInfo(itemSet,true)
-		if numOfItems>=requiredNumberOfPieces then
+		local setName
+		_,setName,_,numOfItems,maxEquipped  = GetItemLinkSetInfo(itemSet,true) --This function instantly gets number of pieces worn but it ignores offbar
+
+		--Check other bar's gear and add them if the set matches
+		local additonalBarToCheck = {EQUIP_SLOT_BACKUP_MAIN,EQUIP_SLOT_BACKUP_OFF} --By default check backbar
+		if GetActiveWeaponPairInfo() == ACTIVE_WEAPON_PAIR_BACKUP then --If currently on backbar, check frontbar instead
+			additonalBarToCheck = {EQUIP_SLOT_MAIN_HAND,EQUIP_SLOT_OFF_HAND}
+		end
+		for _,v in pairs(additonalBarToCheck) do
+			local currentlyCheckedItemSetName
+			local incrementBy = 1
+			_,currentlyCheckedItemSetName = GetItemLinkSetInfo(GetItemLink(BAG_WORN,v),true)
+			if GetItemEquipType(BAG_WORN, additonalBarToCheck[1]) == EQUIP_TYPE_TWO_HAND then incrementBy = 2 end --If item is a two-handed weapon count it twice
+			if currentlyCheckedItemSetName == setName then numOfItems = numOfItems + incrementBy end
+		end
+		if numOfItems>=maxEquipped then
 			return true
 		end
 	end

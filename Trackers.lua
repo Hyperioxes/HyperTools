@@ -247,7 +247,7 @@ end]]
 
 local function createIconTracker(parent,t)
 	
-	local container,icon,background,animationTexture,timer,stacks
+	local container,icon,background,animationTexture,timer,stacks,outline,cooldown
 
 	if parent:GetNamedChild(t.name.."_Icon Tracker") then 
 		container = parent:GetNamedChild(t.name.."_Icon Tracker")
@@ -257,6 +257,7 @@ local function createIconTracker(parent,t)
 		stacks = icon:GetNamedChild("stacks")
 		animationTexture = icon:GetNamedChild("animationTexture")
 		outline = container:GetNamedChild("outline")
+		cooldown = icon:GetNamedChild("cooldown")
 	else
 		container = createContainer(parent,t.name.."_Icon Tracker",t.sizeX,t.sizeY,t.xOffset,t.yOffset,TOPLEFT,TOPLEFT)
 		icon = createTexture(container,"icon",t.sizeX,t.sizeY,1,1,TOPLEFT,TOPLEFT,t.icon)
@@ -265,31 +266,35 @@ local function createIconTracker(parent,t)
 		stacks = createLabel(icon,"stacks",t.sizeX,t.sizeY/2,0,0,TOP,TOP,"0.0",1,1,t.font,t.fontSize,"thick-outline")
 		animationTexture = WM:CreateControl("$(parent)animationTexture",icon,  CT_TEXTURE, 4)
 		outline = WM:CreateControl("$(parent)outline",container,  CT_BACKDROP,4)
+		cooldown = createTexture(icon,"cooldown",t.sizeX,t.sizeY,1,1,BOTTOM,BOTTOM,"")
 	end
 	local timeline = ANIMATION_MANAGER:CreateTimeline()
 	local animation = timeline:InsertAnimation(ANIMATION_TEXTURE, animationTexture)
+
 	background:ClearAnchors()
 	background:SetAnchor(CENTER,icon,CENTER,0,0)
 	background:SetTexture("HyperTools/icons/regularBackground.dds")
-	--background:SetDrawLayer(2)
-	--icon:SetDrawLayer(3)
+	background:SetDrawLayer(0)
+
+	icon:SetDrawLayer(1)
+	cooldown:SetDrawLayer(2)
 
 	animationTexture:ClearAnchors()
 	animationTexture:SetAnchor(CENTER,icon,CENTER,0,0)
 	animationTexture:SetAnchorFill()
-	--animationTexture:SetDrawTier(2)
+	animationTexture:SetDrawLayer(3)
 	animationTexture:SetHidden(true)
 	animationTexture:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
-
 	
 	animation:SetImageData(64,1)
 	animation:SetFramerate(64)
+
 	timeline:SetEnabled(true)
 	timeline:SetPlaybackType(ANIMATION_PLAYBACK_LOOP, LOOP_INDEFINITELY)
 	timeline:PlayFromStart()
 
 	outline:SetAnchor(CENTER,icon,CENTER,0,0)
-	--outline:SetDrawTier(3)
+	outline:SetDrawLayer(4)
 
 	container:SetHandler("OnMoveStop", function(control)
         t.xOffset = container:GetLeft() - parent:GetLeft()
@@ -332,9 +337,13 @@ local function createIconTracker(parent,t)
 				container:SetHidden(not override.show)
 			end
 			local remainingTime = math.max((t.expiresAt[HT_targets[override.target](override.targetNumber)] or 0) - GetGameTimeSeconds(),0)
+			local duration = math.max((t.duration[HT_targets[override.target](override.targetNumber)] or 0),0)
 			local stacksCount = t.stacks[HT_targets[override.target](override.targetNumber)] or 0
 			if remainingTime == 0 then
+				cooldown:SetDimensions(t.sizeX,0)
 				stacksCount = 0
+			else
+				cooldown:SetDimensions(t.sizeX,t.sizeY*(remainingTime/duration))
 			end
 			timer:SetColor(unpack(override.timeColor))
 			timer:SetText(getDecimals(remainingTime,t.decimals))
@@ -349,6 +358,9 @@ local function createIconTracker(parent,t)
 
 
 	local function Update(self,data,groupAnchor)
+		
+		local testFunc = zo_loadstring("d('test')")
+		testFunc()
 		--if data.parent == "HT_Trackers" then
 			EVENT_MANAGER:RegisterForUpdate("HT_IconTracker"..data.name, 100,Process)
 			
@@ -364,11 +376,14 @@ local function createIconTracker(parent,t)
 		container:SetDimensions(data.sizeX,data.sizeY)
 		icon:SetDimensions(data.sizeX,data.sizeY)
 		icon:SetTexture(data.icon)
+
+		cooldown:SetColor(unpack(data.cooldownColor))
+
 		outline:SetDimensions(data.sizeX+(data.outlineThickness*2),data.sizeY+(data.outlineThickness*2))
 		outline:SetEdgeColor(unpack(data.outlineColor))
 		outline:SetCenterColor(0,0,0,0)
-		outline:SetEdgeTexture("",  data.outlineThickness, data.outlineThickness)
-		background:SetDimensions(data.sizeX*1.2,data.sizeY*1.2)
+		outline:SetEdgeTexture("",  data.outlineThickness*2, data.outlineThickness*2)
+		background:SetDimensions(data.sizeX,data.sizeY)
 		background:SetColor(unpack(data.backgroundColor))
 		timer:SetFont(string.format("$(%s)|$(KB_%s)|%s",data.font, data.fontSize,data.fontWeight))
 		stacks:SetFont(string.format("$(%s)|$(KB_%s)|%s",data.font, data.fontSize, data.fontWeight))
@@ -478,8 +493,18 @@ local function createGroup(parent,t,i)
 
 			for _,childName in pairs(t.children) do
 				HT_findContainer(childName,i):Process(i)
-			
 			end
+
+			if CST.name == t.name and HT_settingsVisible then -- If the group is currently selected in settings
+				backdrop:SetCenterColor(0.5,0.9,1,0.3)
+				backdrop:SetEdgeColor(0.5,0.9,1,1)
+			else
+				backdrop:SetCenterColor(unpack(t.backgroundColor))
+				backdrop:SetEdgeColor(unpack(t.outlineColor))
+			end
+
+
+
 		else
 			container:SetHidden(true)
 		end

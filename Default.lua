@@ -22,6 +22,7 @@ HT_trackers = {
 	stacksColor = {1,1,1,1},
 	backgroundColor = {0,0,0,0.4},
 	outlineColor = {0,0,0,1},
+	cooldownColor = {0,0,0,0.7},
 	sizeX = 0,
 	sizeY = 0,
 	anchorToGroupMember = true,
