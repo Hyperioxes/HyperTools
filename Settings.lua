@@ -796,6 +796,7 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 			cooldown = 0,
 			onlyYourCast = false,
 			overwriteShorterDuration = false,
+			luaCodeToExecute = "",
         },
 		},
 	},
@@ -2167,7 +2168,7 @@ function HT_Settings_initializeUI()
 	
 
 
-	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,120,TOPLEFT,TOPLEFT,function(editbox)
+	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,140,TOPLEFT,TOPLEFT,function(editbox)
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		CST.events[CSE].arguments.cooldown = editbox:GetText() 
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
@@ -2175,21 +2176,21 @@ function HT_Settings_initializeUI()
 	end,CST.events[CSE].arguments.cooldown,TEXT_TYPE_NUMERIC)
 	createLabel(arg1Editbox,"label",60,30,0,0,BOTTOMLEFT,TOPLEFT,"Cooldown",0)
 
-	local onlyYourCastCheckbox = createCheckbox(eventBackground,"onlyYourCastCheckbox", 30,30,60,170,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.onlyYourCast,function(arg) 
-	if CSC ~= "none" then
+	local onlyYourCastCheckbox = createCheckbox(eventBackground,"onlyYourCastCheckbox", 30,30,60,175,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.onlyYourCast,function(arg) 
+	if CST ~= "none" then
 		CST.events[CSE].arguments.onlyYourCast = arg
 	end
 	end)
 	createLabel(onlyYourCastCheckbox,"label",120,30,0,0,LEFT,RIGHT,"Only your cast",0)
 
-	local overwriteShortedDurationCheckbox = createCheckbox(eventBackground,"overwriteShortedDurationCheckbox", 30,30,60,200,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.overwriteShorterDuration,function(arg) 
-	if CSC ~= "none" then
+	local overwriteShortedDurationCheckbox = createCheckbox(eventBackground,"overwriteShortedDurationCheckbox", 30,30,60,205,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.overwriteShorterDuration,function(arg) 
+	if CST ~= "none" then
 		CST.events[CSE].arguments.overwriteShorterDuration = arg
 	end
 	end)
 	createLabel(overwriteShortedDurationCheckbox,"label",400,30,0,0,LEFT,RIGHT,"Don't overwrite effects when shorter duration is applied",0)
 
-	local dropdown2 = createDropdown(eventBackground,"dropdown2",200,30,50,120,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),CST.events[CSE].type,function(selection)
+	local dropdown2 = createDropdown(eventBackground,"dropdown2",200,30,50,140,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),CST.events[CSE].type,function(selection)
 	if CST.name ~= "none" then
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		CST.events[CSE].type = selection
@@ -2205,17 +2206,16 @@ function HT_Settings_initializeUI()
 		end
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end
-	
-	
-	
-	
-	
-	
 	end)
-	
+	createLabel(dropdown2,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Event Type",0)
 
 	local dropdown = createDropdown(eventBackground,"dropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection) 
-	
+
+
+
+
+
+
 	CSE = selection 
 	if CST.events[CSE].type == "Get Effect Cooldown" then
 		arg1Editbox:SetHidden(false)
@@ -2229,11 +2229,50 @@ function HT_Settings_initializeUI()
 
 	
 	end)
+	createLabel(dropdown,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Select/Add Event",0)
+
+		createButton(dropdown,"button",30,30,0,0,RIGHT,LEFT,function() 
+		--PlaySound(SOUNDS.DUEL_START)
+		table.insert(CST.events,{
+		type = "Get Effect Duration",
+		arguments = {
+			cooldown = 0,
+			onlyYourCast = false,
+			overwriteShorterDuration = false,
+			luaCodeToExecute = "",
+		}
+		})
+		dropdown.choices = getKeysFromTable(CST.events)
+		dropdown.selection = CSC
+		dropdown:updateDropdown()
+		relocateLeftSide()
+	end,nil,"esoui/art/buttons/plus_up.dds",false)
+
+	createButton(dropdown,"deleteButton",30,30,0,0,LEFT,RIGHT,function() 
+		--PlaySound(SOUNDS.DUEL_START)
+		CST.events[CSC] = nil
+		dropdown.choices = getKeysFromTable(CST.events)
+		dropdown.selection = HT_pickAnyKey(CST.events)
+		dropdown:updateDropdown()
+		relocateLeftSide()
+	end,nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",false)
+
+
 
 
 	createTexture(eventBackground,"edge37",165,2,15,272.5,TOPLEFT,TOPLEFT,"")
 	createLabel(eventBackground,"displayLabel2",150,30,180,260,TOPLEFT,TOPLEFT,"ADVANCED",1,1,"BOLD_FONT",26)
 	createTexture(eventBackground,"edge47",165,2,330,272.5,TOPLEFT,TOPLEFT,"")	
+
+
+	local luaCodeEditbox = createEditbox(eventBackground,"luaCodeEditbox",400,100,50,320,TOPLEFT,TOPLEFT,function(editbox)
+		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
+		CST.events[CSE].arguments.cooldown = editbox:GetText() 
+		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+
+	end,CST.events[CSE].arguments.cooldown,TEXT_TYPE_NUMERIC)
+	createLabel(luaCodeEditbox,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Custom Lua Code",0)
+
 
 
 	--[[

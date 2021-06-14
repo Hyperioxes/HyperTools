@@ -54,6 +54,7 @@ HT_trackers = {
 			cooldown = 8,
 			onlyYourCast = false,
 			overwriteShorterDuration = false,
+			luaCodeToExecute = "",
 		},
 		},
 	},

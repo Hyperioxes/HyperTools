@@ -17,6 +17,9 @@ function HT_adjustDataForNewestVersion(data)
 			    onlyYourCast = false,
 			    overwriteShorterDuration = false,
             }
+            if not event.arguments.luaCodeToExecute then
+                event.arguments.luaCodeToExecute = ""
+            end
         end
         end
 

@@ -18,9 +18,9 @@ HT_eventFunctions = {
 	abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId)  
 			tracker.duration[GetUnitName("player")] = arguments.cooldown
 			tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
-			if not(tracker.stacks[GetUnitName('player')] == 1 and hitValue == 0) then
-				tracker.stacks[GetUnitName('player')] = hitValue
-			end
+			--if not(tracker.stacks[GetUnitName('player')] == 1 and hitValue == 0) then
+				--tracker.stacks[GetUnitName('player')] = hitValue
+			--end
 			--local testFunc = zo_loadstring("tracker.stacks[GetUnitName('player')] = hitValue")
 			--testFunc()
 		end) 
