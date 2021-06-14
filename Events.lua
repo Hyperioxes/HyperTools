@@ -14,11 +14,15 @@ HT_eventFunctions = {
 		end
 	end,
 	["Get Effect Cooldown"] = function(name,ID,tracker,arguments)
-		EVENT_MANAGER:RegisterForEvent(name,EVENT_COMBAT_EVENT,function()  
+		EVENT_MANAGER:RegisterForEvent(name,EVENT_COMBAT_EVENT,function(eventCode, result, isError, abilityName, abilityGraphic, 
+	abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId)  
 			tracker.duration[GetUnitName("player")] = arguments.cooldown
-			--if GetGameTimeSeconds() > (tracker.expiresAt[GetUnitName("player")] or 0) then
-				tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
-			--end
+			tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
+			if not(tracker.stacks[GetUnitName('player')] == 1 and hitValue == 0) then
+				tracker.stacks[GetUnitName('player')] = hitValue
+			end
+			--local testFunc = zo_loadstring("tracker.stacks[GetUnitName('player')] = hitValue")
+			--testFunc()
 		end) 
 		EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID,ID)
 		if arguments.onlyYourCast then

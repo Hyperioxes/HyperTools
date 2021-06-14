@@ -298,17 +298,6 @@ local function selectCurrentlyEditedBackground(number)
 	end
 end
 
-local function checkIfElementIsInsideTable(table,element)
-	for k,v in pairs(table) do
-		if element == v then
-			return true
-		end
-	end
-	return false
-end
-
-
-
 
 
 
@@ -2240,6 +2229,12 @@ function HT_Settings_initializeUI()
 
 	
 	end)
+
+
+	createTexture(eventBackground,"edge37",165,2,15,272.5,TOPLEFT,TOPLEFT,"")
+	createLabel(eventBackground,"displayLabel2",150,30,180,260,TOPLEFT,TOPLEFT,"ADVANCED",1,1,"BOLD_FONT",26)
+	createTexture(eventBackground,"edge47",165,2,330,272.5,TOPLEFT,TOPLEFT,"")	
+
 
 	--[[
 	createButton(eventBackground,"button",30,30,10,70,TOPLEFT,TOPLEFT,function() 

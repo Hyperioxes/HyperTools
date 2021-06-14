@@ -341,7 +341,7 @@ local function createIconTracker(parent,t)
 			local stacksCount = t.stacks[HT_targets[override.target](override.targetNumber)] or 0
 			if remainingTime == 0 then
 				cooldown:SetDimensions(t.sizeX,0)
-				stacksCount = 0
+				--stacksCount = 0
 			else
 				cooldown:SetDimensions(t.sizeX,t.sizeY*(remainingTime/duration))
 			end
@@ -359,8 +359,8 @@ local function createIconTracker(parent,t)
 
 	local function Update(self,data,groupAnchor)
 		
-		local testFunc = zo_loadstring("d('test')")
-		testFunc()
+		--local testFunc = zo_loadstring("d('test')")
+		--testFunc()
 		--if data.parent == "HT_Trackers" then
 			EVENT_MANAGER:RegisterForUpdate("HT_IconTracker"..data.name, 100,Process)
 			

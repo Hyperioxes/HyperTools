@@ -170,12 +170,36 @@ function HT_generateNewName(name,number)
 	return newName
 end
 
+
+function HT_checkIfElementIsInsideTable(table,element)
+	for k,v in pairs(table) do
+		if element == v then
+			return true
+		end
+	end
+	return false
+end
+
+
 function HT_nullify(t)
+	
 	t.stacks = {}
 	t.expiresAt = {}
 	t.duration = {}
 	t.max = 0
 	t.current = 0
+
+	for i=1, GetNumBuffs("player") do
+        local _, startedAt, expireTime, _, stackCount, _, _, _, _, _, abilityId, _, _ = GetUnitBuffInfo("player", i)
+		if HT_checkIfElementIsInsideTable(t.IDs,abilityId) then
+			t.expiresAt[GetUnitName('player')] = expireTime
+			t.duration[GetUnitName('player')] = expireTime - startedAt
+			t.stacks[GetUnitName('player')] = stackCount
+		end
+    end
+
+	
+
 	for k,v in pairs(t.children) do
 		HT_nullify(v)
 	end
