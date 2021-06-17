@@ -331,8 +331,8 @@ local function updateDisplayBackground()
 	local colorpickerCooldownColorpicker = displayBackground:GetNamedChild("colorpickerCooldownColorpicker")
 	local colorpickerTimeColorpicker = displayBackground:GetNamedChild("colorpickerTimeColorpicker")
 	texturePath:SetText(CST.icon)
-	dropdownIDs.choices = CST.IDs
-	dropdownIDs.selection = HT_pickAnyElement(CST.IDs,0)
+	dropdownIDs.choices = HT_getIdsFromAllEvents(CST)
+	dropdownIDs.selection = HT_pickAnyElement(HT_getIdsFromAllEvents(CST),0)
 	dropdownIDs:updateDropdown()
 	dropdownFonts.selection = CST.font
 	dropdownFonts:updateDropdown()
@@ -408,7 +408,7 @@ local function updateGeneralBackground()
 	local generalBackground = selectedTrackerSettingsBackdrop:GetNamedChild("generalBackground")
 	local name = generalBackground:GetNamedChild("NameEditbox")
 	local targetDropdown = generalBackground:GetNamedChild("TargetDropdown")
-	local IDsDropdown = generalBackground:GetNamedChild("IDs dropdown")
+	
 	local TargetNumberDropdown = generalBackground:GetNamedChild("TargetNumberDropdown")
 	local neverCheckbox = generalBackground:GetNamedChild("neverCheckbox")
 	local combatCheckbox = generalBackground:GetNamedChild("combatCheckbox")
@@ -467,13 +467,10 @@ local function updateGeneralBackground()
 
 
 
-	IDsDropdown.choices = CST.IDs
-	IDsDropdown.selection = HT_pickAnyElement(CST.IDs)
-	IDsDropdown:updateDropdown()
 	
 end
 
-local function updateGeneralBackgroundResources()
+--[[local function updateGeneralBackgroundResources()
 	local background = HT_Settings:GetNamedChild("background")
 	local selectedTrackerSettingsBackdrop = background:GetNamedChild("selectedTrackerSettingsBackdrop")
 	local generalBackgroundResource = selectedTrackerSettingsBackdrop:GetNamedChild("generalBackgroundResource")
@@ -482,8 +479,8 @@ local function updateGeneralBackgroundResources()
 
 	name:SetText(CST.name)
 	IDsDropdown.selection = resourcesReverse[CST.IDs[1]]
-	IDsDropdown:updateDropdown()
-end
+	--[[IDsDropdown:updateDropdown()
+end]]
 
 local function updateConditionBackground()
 	local background = HT_Settings:GetNamedChild("background")
@@ -529,11 +526,15 @@ local function updateEventBackground()
 	local arg1Editbox =  eventBackground:GetNamedChild("arg1Editbox")
 	local onlyYourCastCheckbox =  eventBackground:GetNamedChild("onlyYourCastCheckbox")
 	local overwriteShortedDurationCheckbox =  eventBackground:GetNamedChild("overwriteShortedDurationCheckbox")
+	local dontUpdateFromThisEvent = eventBackground:GetNamedChild("dontUpdateFromThisEvent")
+	local luaCodeEditbox =  eventBackground:GetNamedChild("luaCodeEditbox")
+	local IDsDropdown = eventBackground:GetNamedChild("IDs dropdown")
 	eventDropdown.choices = getKeysFromTable(CST.events)
 	eventDropdown.selection = HT_pickAnyKey(CST.events)
 	eventDropdown:updateDropdown()
 	eventTypeDropdown.selection = CST.events[CSE].type
 	eventTypeDropdown:updateDropdown()
+	dontUpdateFromThisEvent:Update(CST.events[CSE].arguments.dontUpdateFromThisEvent)
 	if CST.events[CSE].type == "Get Effect Cooldown" then
 		arg1Editbox:SetHidden(false)
 		arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
@@ -544,7 +545,11 @@ local function updateEventBackground()
 		overwriteShortedDurationCheckbox:Update(CST.events[CSE].arguments.overwriteShorterDuration)
 		arg1Editbox:SetHidden(true)
 	end
-	
+	luaCodeEditbox:SetText(CST.events[CSE].arguments.luaCodeToExecute)
+		
+	IDsDropdown.choices = CST.IDs
+	IDsDropdown.selection = HT_pickAnyElement(CST.IDs)
+	IDsDropdown:updateDropdown()
 end
 
 
@@ -589,7 +594,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 			updateDisplayBackground()
 			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			updateGeneralBackgroundResources()
+			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 		end,nil,nil,true)
@@ -601,7 +606,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 			updateDisplayBackground()
 			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			updateGeneralBackgroundResources()
+			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 			button:SetHidden(true)
@@ -755,7 +760,6 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 	font = "BOLD_FONT",
 	fontSize = 16,
 	fontWeight = "thick-outline",
-	IDs = IDs,
 	target = target,
 	outlineThickness = 2,
 	current = 0,
@@ -797,6 +801,8 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 			onlyYourCast = false,
 			overwriteShorterDuration = false,
 			luaCodeToExecute = "",
+			dontUpdateFromThisEvent = false,
+			Ids = IDs,
         },
 		},
 	},
@@ -1823,39 +1829,7 @@ function HT_Settings_initializeUI()
 	end)
 	createLabel(dropdown,"Target",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Target",0,1)
 	
-	createLabel(generalBackground,"IdsLabel",175,30,15,110,TOPLEFT,TOPLEFT,"IDs",0,1)
-	local dropdown = createDropdown(generalBackground,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,CST.IDs,HT_pickAnyElement(CST.IDs),function(selection)
 
-	end)
-
-
-
-
-	local editbox = createEditbox(generalBackground,"addIdEditbox",175,30,15,135,TOPLEFT,TOPLEFT,function(editbox)
-
-	end)
-
-	createButton(generalBackground,"buttonDeleteID",30,30,190,165,TOPLEFT,TOPLEFT,function()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		removeElementFromTable(CST.IDs,dropdown.selection)
-		
-		dropdown.choices = CST.IDs
-		dropdown.selection = HT_pickAnyElement(CST.IDs)
-		dropdown:updateDropdown()
-		updateDisplayBackground()
-		updateDisplayBackgroundResource()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(generalBackground,"buttonAddID",30,30,188,135,TOPLEFT,TOPLEFT,function() 
-
-		table.insert(CST.IDs,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
-		
-		dropdown.choices = CST.IDs
-		dropdown.selection = HT_pickAnyElement(CST.IDs)
-		dropdown:updateDropdown()
-		updateDisplayBackground()
-		updateDisplayBackgroundResource()
-	end,nil,"/esoui/art/buttons/plus_up.dds",nil)
 
 	createButton(generalBackground,"exportButton",200,30,15,250,TOPLEFT,TOPLEFT,function() 
 		importEditboxUpdated = false
@@ -2166,9 +2140,44 @@ function HT_Settings_initializeUI()
 	createTexture(eventBackground,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 
 	
+	createLabel(eventBackground,"IdsLabel",175,30,300,40,TOPLEFT,TOPLEFT,"IDs",0,1)
+	local dropdown = createDropdown(eventBackground,"IDs dropdown",175,32,300,100,TOPLEFT,TOPLEFT,CST.IDs,HT_pickAnyElement(CST.IDs),function(selection)
+
+	end)
 
 
-	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,140,TOPLEFT,TOPLEFT,function(editbox)
+
+
+	local editbox = createEditbox(eventBackground,"addIdEditbox",175,30,300,70,TOPLEFT,TOPLEFT,function(editbox)
+
+	end)
+
+	createButton(eventBackground,"buttonDeleteID",30,30,475,100,TOPLEFT,TOPLEFT,function()
+		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
+		removeElementFromTable(CST.IDs,dropdown.selection)
+		
+		dropdown.choices = CST.IDs
+		dropdown.selection = HT_pickAnyElement(CST.IDs)
+		dropdown:updateDropdown()
+		updateDisplayBackground()
+		updateDisplayBackgroundResource()
+		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
+	createButton(eventBackground,"buttonAddID",30,30,473,100,TOPLEFT,TOPLEFT,function() 
+
+		table.insert(CST.IDs,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
+		
+		dropdown.choices = CST.IDs
+		dropdown.selection = HT_pickAnyElement(CST.IDs)
+		dropdown:updateDropdown()
+		updateDisplayBackground()
+		updateDisplayBackgroundResource()
+	end,nil,"/esoui/art/buttons/plus_up.dds",nil)
+
+
+
+
+	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,170,TOPLEFT,TOPLEFT,function(editbox)
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		CST.events[CSE].arguments.cooldown = editbox:GetText() 
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
@@ -2265,13 +2274,21 @@ function HT_Settings_initializeUI()
 	createTexture(eventBackground,"edge47",165,2,330,272.5,TOPLEFT,TOPLEFT,"")	
 
 
-	local luaCodeEditbox = createEditbox(eventBackground,"luaCodeEditbox",400,100,50,320,TOPLEFT,TOPLEFT,function(editbox)
+	local luaCodeEditbox = createMultilineEditbox(eventBackground,"luaCodeEditbox",400,300,50,320,TOPLEFT,TOPLEFT,function(editbox)
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.events[CSE].arguments.cooldown = editbox:GetText() 
+		CST.events[CSE].arguments.luaCodeToExecute = editbox:GetText() 
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 
-	end,CST.events[CSE].arguments.cooldown,TEXT_TYPE_NUMERIC)
-	createLabel(luaCodeEditbox,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Custom Lua Code",0)
+	end,CST.events[CSE].arguments.luaCodeToExecute)
+	createLabel(luaCodeEditbox,"label",500,30,0,0,BOTTOMLEFT,TOPLEFT,"Custom Lua Code executed every time event fires",0)
+
+
+	local dontUpdateFromThisEvent = createCheckbox(eventBackground,"dontUpdateFromThisEvent", 30,30,60,650,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.dontUpdateFromThisEvent,function(arg) 
+	if CST ~= "none" then
+		CST.events[CSE].arguments.dontUpdateFromThisEvent = arg
+	end
+	end)
+	createLabel(dontUpdateFromThisEvent,"label",400,70,0,0,LEFT,RIGHT,"Don't update duration and stacks from this event (ignore original code and run only custom one)",0)
 
 
 

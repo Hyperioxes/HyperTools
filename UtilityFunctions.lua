@@ -171,6 +171,17 @@ function HT_generateNewName(name,number)
 end
 
 
+function HT_getIdsFromAllEvents(tracker)
+	local holder = {}
+	for _,event in pairs(tracker.events) do
+		for _,id in pairs(event.arguments.Ids) do
+			if not HT_checkIfElementIsInsideTable(holder,id) then holder[#holder+1] = id end
+		end
+	end
+	return holder
+end
+
+
 function HT_checkIfElementIsInsideTable(table,element)
 	for k,v in pairs(table) do
 		if element == v then
@@ -191,7 +202,7 @@ function HT_nullify(t)
 
 	for i=1, GetNumBuffs("player") do
         local _, startedAt, expireTime, _, stackCount, _, _, _, _, _, abilityId, _, _ = GetUnitBuffInfo("player", i)
-		if HT_checkIfElementIsInsideTable(t.IDs,abilityId) then
+		if HT_checkIfElementIsInsideTable(HT_getIdsFromAllEvents(t),abilityId) then
 			t.expiresAt[GetUnitName('player')] = expireTime
 			t.duration[GetUnitName('player')] = expireTime - startedAt
 			t.stacks[GetUnitName('player')] = stackCount

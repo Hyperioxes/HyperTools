@@ -107,7 +107,7 @@ local function createProgressBar(parent,t)
 		end
 
 		for key,event in pairs(t.events) do
-			for _,ID in pairs(t.IDs) do
+			for _,ID in pairs(event.arguments.Ids) do
 				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.arguments)
 			end
 		end
@@ -367,7 +367,7 @@ local function createIconTracker(parent,t)
 		--end
 
 		for key,event in pairs(data.events) do
-			for _,ID in pairs(data.IDs) do
+			for _,ID in pairs(event.arguments.Ids) do
 				HT_eventFunctions[event.type]("HT"..key..data.name..ID,ID,t,event.arguments)
 			end
 		end
@@ -519,7 +519,7 @@ local function createGroup(parent,t,i)
 		end
 
 		for key,event in pairs(t.events) do
-			for _,ID in pairs(t.IDs) do
+			for _,ID in pairs(event.arguments.Ids) do
 				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.arguments)
 			end
 		end

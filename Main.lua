@@ -17,11 +17,18 @@ function HT_adjustDataForNewestVersion(data)
 			    onlyYourCast = false,
 			    overwriteShorterDuration = false,
             }
+            end
             if not event.arguments.luaCodeToExecute then
                 event.arguments.luaCodeToExecute = ""
             end
+            if not event.arguments.dontUpdateFromThisEvent then
+                event.arguments.dontUpdateFromThisEvent = false
+            end
+            if not event.arguments.Ids then
+                event.arguments.Ids = t.IDs or {}
+            end
         end
-        end
+
 
         if not t.drawLevel then
             t.drawLevel = 0

@@ -2,10 +2,16 @@ HT_eventFunctions = {
 	["Get Effect Duration"] = function(name,ID,tracker,arguments)
 		EVENT_MANAGER:RegisterForEvent(name,EVENT_EFFECT_CHANGED,function(_,_,_,_,_,_,expireTime,stackCount,_,_,_,_,_,targetName) 
 			targetName = HT_removeGender(targetName)
-			if expireTime > (tracker.expiresAt[targetName] or 0) or (not arguments.overwriteShorterDuration) then
-				tracker.expiresAt[targetName] = expireTime
-				tracker.duration[targetName] = expireTime-GetGameTimeSeconds()
-				tracker.stacks[targetName] = stackCount
+			if not arguments.dontUpdateFromThisEvent then
+				targetName = HT_removeGender(targetName)
+				if expireTime > (tracker.expiresAt[targetName] or 0) or (not arguments.overwriteShorterDuration) then
+					tracker.expiresAt[targetName] = expireTime
+					tracker.duration[targetName] = expireTime-GetGameTimeSeconds()
+					tracker.stacks[targetName] = stackCount
+				end
+			end
+			if arguments.luaCodeToExecute then
+				zo_loadstring(arguments.luaCodeToExecute)()
 			end
 		end) 
 		EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID,ID)
@@ -16,13 +22,15 @@ HT_eventFunctions = {
 	["Get Effect Cooldown"] = function(name,ID,tracker,arguments)
 		EVENT_MANAGER:RegisterForEvent(name,EVENT_COMBAT_EVENT,function(eventCode, result, isError, abilityName, abilityGraphic, 
 	abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId)  
-			tracker.duration[GetUnitName("player")] = arguments.cooldown
-			tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
-			--if not(tracker.stacks[GetUnitName('player')] == 1 and hitValue == 0) then
-				--tracker.stacks[GetUnitName('player')] = hitValue
-			--end
-			--local testFunc = zo_loadstring("tracker.stacks[GetUnitName('player')] = hitValue")
-			--testFunc()
+			if not arguments.dontUpdateFromThisEvent then
+				tracker.duration[GetUnitName("player")] = arguments.cooldown
+				tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
+			end
+
+			if arguments.luaCodeToExecute then
+				zo_loadstring(arguments.luaCodeToExecute)()
+			end
+
 		end) 
 		EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID,ID)
 		if arguments.onlyYourCast then

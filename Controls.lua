@@ -172,6 +172,49 @@ function createEditbox(parent,name,sizeX,sizeY,xOffset,yOffset,fromAnchor,toAnch
 	return control
 end
 
+
+
+
+function createMultilineEditbox(parent,name,sizeX,sizeY,xOffset,yOffset,fromAnchor,toAnchor,editboxFunction,defaultValue,textType)
+	local control = WM:CreateControl("$(parent)"..name,parent,CT_CONTROL)
+	control:SetDimensions(sizeX, sizeY)
+	control:SetAnchor(fromAnchor,parent,toAnchor,xOffset,yOffset)
+	local backdrop = WM:CreateControlFromVirtual(nil, control, "ZO_EditBackdrop")
+	backdrop:SetAnchor(TOPLEFT, control, TOPLEFT,0,0)
+	local editbox = WM:CreateControlFromVirtual("$(parent)editbox", control, "ZO_DefaultEditMultiLineForBackdrop")
+	control.editbox = editbox
+	control.SetText = function(self,text)
+		self.editbox:SetText(text)
+	end
+	control.GetText = function(self)
+		return self.editbox:GetText()
+	end
+	editbox:SetHandler("OnFocusLost", function(self) editboxFunction(control) end)
+    editbox:SetHandler("OnEscape", function(self) self:LoseFocus(control) editboxFunction() end)
+	editbox:SetAnchor(TOPLEFT, control, TOPLEFT,0,0)
+	editbox:SetDimensions(sizeX, sizeY)
+	if defaultValue then
+		editbox:SetText(defaultValue)
+	end
+	editbox.OriginalGetText = editbox.GetText
+	editbox.GetText = function(self)
+		local var = self:OriginalGetText()
+		if var == "" then
+			return nil
+		else
+			return var
+		end
+	end
+	backdrop:SetAnchorFill()
+	--control:SetResizeToFitDescendents(true)
+	editbox:SetTextType(textType or TEXT_TYPE_ALL)
+	editbox:SetMaxInputChars(30000)
+	return control
+end
+
+
+
+
 function createBackground(parent,name,sizeX,sizeY,xOffset,yOffset,fromAnchor,toAnchor)
 	local control = WM:CreateControl("$(parent)"..name,parent,CT_CONTROL)
 	control:SetDimensions(sizeX, sizeY)
