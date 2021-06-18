@@ -1,3 +1,6 @@
+hyperToolsTracker = {}
+
+
 HT_eventFunctions = {
 	["Get Effect Duration"] = function(name,ID,tracker,arguments)
 		EVENT_MANAGER:RegisterForEvent(name,EVENT_EFFECT_CHANGED,function(_,_,_,_,_,_,expireTime,stackCount,_,_,_,_,_,targetName) 
@@ -28,7 +31,9 @@ HT_eventFunctions = {
 			end
 
 			if arguments.luaCodeToExecute then
+				hyperToolsTracker = tracker
 				zo_loadstring(arguments.luaCodeToExecute)()
+				tracker = hyperToolsTracker
 			end
 
 		end) 

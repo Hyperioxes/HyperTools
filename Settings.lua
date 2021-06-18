@@ -517,38 +517,43 @@ local function updateConditionBackground()
 	HT_processResultControlType()
 end
 
-local function updateEventBackground()
+local function updateEventBackground(ignoreSelf)
 	local background = HT_Settings:GetNamedChild("background")
 	local selectedTrackerSettingsBackdrop = background:GetNamedChild("selectedTrackerSettingsBackdrop")
 	local eventBackground = selectedTrackerSettingsBackdrop:GetNamedChild("eventBackground")
 	local eventDropdown = eventBackground:GetNamedChild("dropdown")
 	local eventTypeDropdown = eventBackground:GetNamedChild("dropdown2")
-	local arg1Editbox =  eventBackground:GetNamedChild("arg1Editbox")
+	local arg1EditboxAlt =  eventBackground:GetNamedChild("arg1Editbox")
 	local onlyYourCastCheckbox =  eventBackground:GetNamedChild("onlyYourCastCheckbox")
-	local overwriteShortedDurationCheckbox =  eventBackground:GetNamedChild("overwriteShortedDurationCheckbox")
+	local overwriteShortedDurationCheckboxAlt =  eventBackground:GetNamedChild("overwriteShortedDurationCheckbox")
 	local dontUpdateFromThisEvent = eventBackground:GetNamedChild("dontUpdateFromThisEvent")
 	local luaCodeEditbox =  eventBackground:GetNamedChild("luaCodeEditbox")
 	local IDsDropdown = eventBackground:GetNamedChild("IDs dropdown")
-	eventDropdown.choices = getKeysFromTable(CST.events)
-	eventDropdown.selection = HT_pickAnyKey(CST.events)
-	eventDropdown:updateDropdown()
+	
+	if not ignoreSelf then
+		eventDropdown.choices = getKeysFromTable(CST.events)
+		eventDropdown.selection = HT_pickAnyKey(CST.events)
+		eventDropdown:updateDropdown()
+	end
 	eventTypeDropdown.selection = CST.events[CSE].type
 	eventTypeDropdown:updateDropdown()
+
 	dontUpdateFromThisEvent:Update(CST.events[CSE].arguments.dontUpdateFromThisEvent)
 	if CST.events[CSE].type == "Get Effect Cooldown" then
-		arg1Editbox:SetHidden(false)
-		arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
-		overwriteShortedDurationCheckbox:SetHidden(true)
+		arg1EditboxAlt:SetHidden(false)
+		arg1EditboxAlt:SetText(CST.events[CSE].arguments.cooldown)
+		overwriteShortedDurationCheckboxAlt:SetHidden(true)
 	elseif CST.events[CSE].type == "Get Effect Duration" then
-		onlyYourCastCheckbox:Update(CST.events[CSE].arguments.onlyYourCast)
-		overwriteShortedDurationCheckbox:SetHidden(false)
-		overwriteShortedDurationCheckbox:Update(CST.events[CSE].arguments.overwriteShorterDuration)
-		arg1Editbox:SetHidden(true)
+		overwriteShortedDurationCheckboxAlt:SetHidden(false)
+		overwriteShortedDurationCheckboxAlt:Update(CST.events[CSE].arguments.overwriteShorterDuration)
+		arg1EditboxAlt:SetHidden(true)
 	end
+
+	onlyYourCastCheckbox:Update(CST.events[CSE].arguments.onlyYourCast)
 	luaCodeEditbox:SetText(CST.events[CSE].arguments.luaCodeToExecute)
 		
-	IDsDropdown.choices = CST.IDs
-	IDsDropdown.selection = HT_pickAnyElement(CST.IDs)
+	IDsDropdown.choices = CST.events[CSE].arguments.Ids
+	IDsDropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 	IDsDropdown:updateDropdown()
 end
 
@@ -631,7 +636,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 			updateDisplayBackground()
 			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			updateGeneralBackgroundResources()
+			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 
@@ -646,7 +651,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 				updateDisplayBackground()
 				updateDisplayBackgroundResource()
 				updateGeneralBackground()
-				updateGeneralBackgroundResources()
+				--updateGeneralBackgroundResources()
 				updateConditionBackground()
 				updateEventBackground()
 			end,nil,"/esoui/art/buttons/scrollbox_downarrow_up.dds",true)
@@ -886,7 +891,7 @@ function HT_Settings_initializeUI()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		updateGeneralBackgroundResources()
+		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 	end,nil,nil,true)
@@ -898,7 +903,7 @@ function HT_Settings_initializeUI()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		updateGeneralBackgroundResources()
+		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 	end,"Return",nil,true)
@@ -1156,7 +1161,7 @@ function HT_Settings_initializeUI()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		updateGeneralBackgroundResources()
+		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -2141,11 +2146,11 @@ function HT_Settings_initializeUI()
 
 	
 	createLabel(eventBackground,"IdsLabel",175,30,300,40,TOPLEFT,TOPLEFT,"IDs",0,1)
-	local dropdown = createDropdown(eventBackground,"IDs dropdown",175,32,300,100,TOPLEFT,TOPLEFT,CST.IDs,HT_pickAnyElement(CST.IDs),function(selection)
+	local dropdown = createDropdown(eventBackground,"IDs dropdown",175,32,300,100,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.Ids,HT_pickAnyElement(CST.events[CSE].arguments.Ids),function(selection)
 
 	end)
 
-
+	
 
 
 	local editbox = createEditbox(eventBackground,"addIdEditbox",175,30,300,70,TOPLEFT,TOPLEFT,function(editbox)
@@ -2154,21 +2159,21 @@ function HT_Settings_initializeUI()
 
 	createButton(eventBackground,"buttonDeleteID",30,30,475,100,TOPLEFT,TOPLEFT,function()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		removeElementFromTable(CST.IDs,dropdown.selection)
+		removeElementFromTable(CST.events[CSE].arguments.Ids,dropdown.selection)
 		
-		dropdown.choices = CST.IDs
-		dropdown.selection = HT_pickAnyElement(CST.IDs)
+		dropdown.choices = CST.events[CSE].arguments.Ids
+		dropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(eventBackground,"buttonAddID",30,30,473,100,TOPLEFT,TOPLEFT,function() 
+	createButton(eventBackground,"buttonAddID",30,30,473,70,TOPLEFT,TOPLEFT,function() 
 
-		table.insert(CST.IDs,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
+		table.insert(CST.events[CSE].arguments.Ids,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
 		
-		dropdown.choices = CST.IDs
-		dropdown.selection = HT_pickAnyElement(CST.IDs)
+		dropdown.choices = CST.events[CSE].arguments.Ids
+		dropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
@@ -2199,6 +2204,15 @@ function HT_Settings_initializeUI()
 	end)
 	createLabel(overwriteShortedDurationCheckbox,"label",400,30,0,0,LEFT,RIGHT,"Don't overwrite effects when shorter duration is applied",0)
 
+	local dontUpdateFromThisEvent = createCheckbox(eventBackground,"dontUpdateFromThisEvent", 30,30,60,650,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.dontUpdateFromThisEvent,function(arg) 
+	if CST ~= "none" then
+		CST.events[CSE].arguments.dontUpdateFromThisEvent = arg
+	end
+	end)
+	createLabel(dontUpdateFromThisEvent,"label",400,70,0,0,LEFT,RIGHT,"Don't update duration and stacks from this event (ignore original code and run only custom one)",0)
+
+
+
 	local dropdown2 = createDropdown(eventBackground,"dropdown2",200,30,50,140,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),CST.events[CSE].type,function(selection)
 	if CST.name ~= "none" then
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
@@ -2218,53 +2232,9 @@ function HT_Settings_initializeUI()
 	end)
 	createLabel(dropdown2,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Event Type",0)
 
-	local dropdown = createDropdown(eventBackground,"dropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection) 
-
-
-
-
-
-
-	CSE = selection 
-	if CST.events[CSE].type == "Get Effect Cooldown" then
-		arg1Editbox:SetHidden(false)
-		arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
-	else
-		arg1Editbox:SetHidden(true)
-	end
-	dropdown2.selection = CST.events[CSE].type
-	dropdown2:updateDropdown()
-
-
 	
-	end)
-	createLabel(dropdown,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Select/Add Event",0)
 
-		createButton(dropdown,"button",30,30,0,0,RIGHT,LEFT,function() 
-		--PlaySound(SOUNDS.DUEL_START)
-		table.insert(CST.events,{
-		type = "Get Effect Duration",
-		arguments = {
-			cooldown = 0,
-			onlyYourCast = false,
-			overwriteShorterDuration = false,
-			luaCodeToExecute = "",
-		}
-		})
-		dropdown.choices = getKeysFromTable(CST.events)
-		dropdown.selection = CSC
-		dropdown:updateDropdown()
-		relocateLeftSide()
-	end,nil,"esoui/art/buttons/plus_up.dds",false)
 
-	createButton(dropdown,"deleteButton",30,30,0,0,LEFT,RIGHT,function() 
-		--PlaySound(SOUNDS.DUEL_START)
-		CST.events[CSC] = nil
-		dropdown.choices = getKeysFromTable(CST.events)
-		dropdown.selection = HT_pickAnyKey(CST.events)
-		dropdown:updateDropdown()
-		relocateLeftSide()
-	end,nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",false)
 
 
 
@@ -2283,13 +2253,54 @@ function HT_Settings_initializeUI()
 	createLabel(luaCodeEditbox,"label",500,30,0,0,BOTTOMLEFT,TOPLEFT,"Custom Lua Code executed every time event fires",0)
 
 
-	local dontUpdateFromThisEvent = createCheckbox(eventBackground,"dontUpdateFromThisEvent", 30,30,60,650,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.dontUpdateFromThisEvent,function(arg) 
-	if CST ~= "none" then
-		CST.events[CSE].arguments.dontUpdateFromThisEvent = arg
-	end
-	end)
-	createLabel(dontUpdateFromThisEvent,"label",400,70,0,0,LEFT,RIGHT,"Don't update duration and stacks from this event (ignore original code and run only custom one)",0)
+	local dropdown = createDropdown(eventBackground,"dropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection) 
 
+	CSE = selection 
+	if CST.events[CSE].type == "Get Effect Cooldown" then
+		arg1Editbox:SetHidden(false)
+		arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
+	else
+		arg1Editbox:SetHidden(true)
+	end
+	dropdown2.selection = CST.events[CSE].type
+	dropdown2:updateDropdown()
+	updateEventBackground(true)
+
+
+	
+	end)
+
+	
+
+
+	createLabel(dropdown,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Select/Add Event",0)
+		createButton(dropdown,"button",30,30,0,0,RIGHT,LEFT,function() 
+	--PlaySound(SOUNDS.DUEL_START)
+	table.insert(CST.events,{
+	type = "Get Effect Duration",
+	arguments = {
+		cooldown = 0,
+		onlyYourCast = false,
+		overwriteShorterDuration = false,
+		luaCodeToExecute = "",
+		Ids = {},
+	}
+	})
+	dropdown.choices = getKeysFromTable(CST.events)
+	dropdown.selection = CSC
+	dropdown:updateDropdown()
+	relocateLeftSide()
+
+	end,nil,"esoui/art/buttons/plus_up.dds",false)
+
+	createButton(dropdown,"deleteButton",30,30,0,0,LEFT,RIGHT,function() 
+		--PlaySound(SOUNDS.DUEL_START)
+		CST.events[CSE] = nil
+		dropdown.choices = getKeysFromTable(CST.events)
+		dropdown.selection = HT_pickAnyKey(CST.events)
+		dropdown:updateDropdown()
+		relocateLeftSide()
+	end,nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",false)
 
 
 	--[[
