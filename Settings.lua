@@ -432,8 +432,9 @@ local function updateGeneralBackground()
 	local skillDropdown = generalBackground:GetNamedChild("skillDropdown")
 	local zoneDropdown = generalBackground:GetNamedChild("zoneDropdown")
 	local bossDropdown = generalBackground:GetNamedChild("bossDropdown")
-	
+	local alwaysCheckbox = generalBackground:GetNamedChild("alwaysCheckbox")
 	neverCheckbox:Update(CST.load.never)
+	alwaysCheckbox:Update(CST.load.always)
 	combatCheckbox:Update(CST.load.inCombat)
 
 	classDropdown.selection = CST.load.class
