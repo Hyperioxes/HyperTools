@@ -2318,6 +2318,7 @@ function HT_Settings_initializeUI()
 
 	createButton(dropdown,"deleteButton",30,30,0,0,LEFT,RIGHT,function() 
 		--PlaySound(SOUNDS.DUEL_START)
+		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		CST.events[CSE] = nil
 		dropdown.choices = getKeysFromTable(CST.events)
 		dropdown.selection = HT_pickAnyKey(CST.events)

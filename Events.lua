@@ -10,7 +10,7 @@ function HT_setMaxDuration(duration)
 end
 
 
-HT_eventFunctions = {
+local eventFunctions = {
 	["Get Effect Duration"] = function(name,ID,tracker,arguments)
 		EVENT_MANAGER:RegisterForEvent(name,EVENT_EFFECT_CHANGED,function(_,result,_,_,_,_,expireTime,stackCount,_,_,_,_,_,targetName) 
 			targetName = HT_removeGender(targetName)
@@ -62,27 +62,62 @@ HT_eventFunctions = {
 			EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE,1)
 		end
 	end,
-	--[[["Get Resource Value"] = function(name,ID,tracker)
-		EVENT_MANAGER:RegisterForEvent(name, EVENT_POWER_UPDATE, function(_,player,type,_,current,max,idk)
-			tracker.current = current
-			tracker.max = max
+	["Entering/Exiting Combat"] = function(name,ID,tracker,arguments)
+		EVENT_MANAGER:RegisterForEvent(name,EVENT_PLAYER_COMBAT_STATE,function(_,inCombat)
+			if arguments.luaCodeToExecute then
+				hyperToolsTracker = tracker
+				hyperToolsGlobal.inCombat = inCombat
+				hyperToolsGlobal.targetName = GetUnitName("player")
+				zo_loadstring(arguments.luaCodeToExecute)()
+				hyperToolsGlobal = {}
+				tracker = hyperToolsTracker
+			end
 		end)
-		EVENT_MANAGER:AddFilterForEvent(name, EVENT_POWER_UPDATE, REGISTER_FILTER_UNIT_TAG ,"player")
-		EVENT_MANAGER:AddFilterForEvent(name, EVENT_POWER_UPDATE, REGISTER_FILTER_POWER_TYPE,ID)
-	end,]]
-
-
+	end,
 }
 
-HT_unregisterEventFunctions = {
+local unregisterEventFunctions = {
 	["Get Effect Duration"] = function(name)
 		EVENT_MANAGER:UnregisterForEvent(name,EVENT_EFFECT_CHANGED)
 	end,
-	--[[["Get Resource Value"] = function(name)
-		EVENT_MANAGER:UnregisterForEvent(name,EVENT_POWER_UPDATE)
-	end,]]
 	["Get Effect Cooldown"] = function(name)
 		EVENT_MANAGER:UnregisterForEvent(name,EVENT_COMBAT_EVENT)
 	end,
+	["Entering/Exiting Combat"] = function(name)
+		EVENT_MANAGER:UnregisterForEvent(name,EVENT_PLAYER_COMBAT_STATE)
+	end,
 }
+
+HT_unregisterEventFunctions = {
+	["Get Effect Duration"] = function(key,localEvent,tracker)
+		for _,ID in pairs(localEvent.arguments.Ids) do
+			unregisterEventFunctions[localEvent.type]("HT"..key..tracker.name..ID)
+		end
+	end,
+	["Get Effect Cooldown"] = function(key,localEvent,tracker)
+		for _,ID in pairs(localEvent.arguments.Ids) do
+			unregisterEventFunctions[localEvent.type]("HT"..key..tracker.name..ID)
+		end
+	end,
+	["Entering/Exiting Combat"] = function(key,localEvent,tracker)
+		unregisterEventFunctions[localEvent.type]("HT"..key..tracker.name)
+	end,
+}
+
+HT_eventFunctions = {
+	["Get Effect Duration"] = function (key,localEvent,tracker)
+		for _, ID in pairs(localEvent.arguments.Ids) do
+			eventFunctions[localEvent.type]("HT" .. key .. tracker.name .. ID, ID, tracker, localEvent.arguments)
+		end
+	end,
+	["Get Effect Cooldown"] = function (key,localEvent,tracker)
+		for _, ID in pairs(localEvent.arguments.Ids) do
+			eventFunctions[localEvent.type]("HT" .. key .. tracker.name .. ID, ID, tracker, localEvent.arguments)
+		end
+	end,
+	["Entering/Exiting Combat"] = function (key,localEvent,tracker)
+		eventFunctions[localEvent.type]("HT" .. key .. tracker.name, nil, tracker, localEvent.arguments)
+	end,
+}
+
 

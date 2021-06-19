@@ -109,9 +109,7 @@ local function createProgressBar(parent,t)
 		end
 
 		for key,event in pairs(t.events) do
-			for _,ID in pairs(event.arguments.Ids) do
-				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.arguments)
-			end
+			HT_eventFunctions[event.type](key,event,t)
 		end
 
 
@@ -179,9 +177,7 @@ local function createProgressBar(parent,t)
 
 	local function UnregisterEvents(self)
 		for key,event in pairs(t.events) do
-			for _,ID in pairs(event.arguments.Ids) do
-				HT_unregisterEventFunctions[event.type]("HT"..key..t.name..ID)
-			end
+			HT_unregisterEventFunctions[event.type](key,event,t)
 		end
 	end
 	container.UnregisterEvents = UnregisterEvents
@@ -371,9 +367,7 @@ local function createIconTracker(parent,t)
 		--end
 
 		for key,event in pairs(data.events) do
-			for _,ID in pairs(event.arguments.Ids) do
-				HT_eventFunctions[event.type]("HT"..key..data.name..ID,ID,t,event.arguments)
-			end
+			HT_eventFunctions[event.type](key,event,data)
 		end
 
 		container:SetDrawLayer(data.drawLevel)
@@ -415,9 +409,7 @@ local function createIconTracker(parent,t)
 	
 	local function UnregisterEvents(self)
 		for key,event in pairs(t.events) do
-			for _,ID in pairs(event.arguments.Ids) do
-				HT_unregisterEventFunctions[event.type]("HT"..key..t.name..ID)
-			end
+			HT_unregisterEventFunctions[event.type](key,event,t)
 		end
 	end
 	container.UnregisterEvents = UnregisterEvents
@@ -527,9 +519,7 @@ local function createGroup(parent,t,i)
 		end
 
 		for key,event in pairs(t.events) do
-			for _,ID in pairs(event.arguments.Ids) do
-				HT_eventFunctions[event.type]("HT"..key..t.name..ID,ID,t,event.arguments)
-			end
+			HT_eventFunctions[event.type](key,event,t)
 		end
 
 
@@ -561,9 +551,7 @@ local function createGroup(parent,t,i)
 
 	local function UnregisterEvents(self)
 		for key,event in pairs(t.events) do
-			for _,ID in pairs(event.arguments.Ids) do
-				HT_unregisterEventFunctions[event.type]("HT"..key..t.name..ID)
-			end
+			HT_unregisterEventFunctions[event.type](key,event,t)
 		end
 		for _,childName in pairs(t.children) do
 			HT_findContainer(childName,i):UnregisterEvents()
