@@ -1,0 +1,11 @@
+<Bindings>
+	<Layer name="SI_KEYBINDINGS_CATEGORY_GENERAL">
+		<Category name="HyperTools">
+			<Action name="TOGGLE_MENU_FRAME">
+				<Down>
+					HT_toggleUI()
+				</Down>
+			</Action>
+		</Category>
+	</Layer>
+</Bindings>

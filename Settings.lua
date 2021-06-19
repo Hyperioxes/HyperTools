@@ -180,6 +180,9 @@ local function hideUI()
 
 end
 
+
+
+
 local function showUI()
 	HT_Settings:SetHidden(false)
 	HT_settingsVisible = true
@@ -188,6 +191,17 @@ local function showUI()
 		HT_changeLock(v,true)
 	end
 end
+
+
+function HT_toggleUI()
+	if HT_settingsVisible then
+		hideUI()
+	else
+		showUI()
+	end
+end
+
+
 SLASH_COMMANDS["/hthide"] = hideUI
 SLASH_COMMANDS["/htshow"] = showUI
 
@@ -881,7 +895,7 @@ function HT_Settings_initializeUI()
 	CST = HTSV.trackers["none"] -- Currently Selected Tracker
 
 	local background = createBackground(HT_Settings,"background",800,825,0,0,TOPLEFT,TOPLEFT)
-
+	local exitButton = createButton(background,"exitButton",25,25,0,0,TOPRIGHT,TOPRIGHT,function() hideUI() end,nil,"/esoui/art/buttons/decline_up.dds",true)
 	------ BACKGROUND ON THE LEFT WITH ALL EXISTING TRACKERS ----------------
 	local eTB = createBackground(background,"eTB",200,775,25,25,TOPLEFT,TOPLEFT) -- existing trackers background
 	
@@ -1056,7 +1070,7 @@ function HT_Settings_initializeUI()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		updateGeneralBackgroundResources()
+		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -1267,7 +1281,7 @@ function HT_Settings_initializeUI()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		updateGeneralBackgroundResources()
+		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -1374,7 +1388,7 @@ function HT_Settings_initializeUI()
 		updateDisplayBackground()
 		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		updateGeneralBackgroundResources()
+		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -1423,7 +1437,7 @@ function HT_Settings_initializeUI()
 			updateDisplayBackground()
 			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			updateGeneralBackgroundResources()
+			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 		end

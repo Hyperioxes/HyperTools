@@ -1,20 +1,36 @@
 hyperToolsTracker = {}
+hyperToolsGlobal = {}
+
+function HT_setDuration(duration)
+	hyperToolsTracker.expiresAt[hyperToolsGlobal.targetName] = GetGameTimeSeconds() + duration
+end
+
+function HT_setMaxDuration(duration)
+	hyperToolsTracker.duration[hyperToolsGlobal.targetName] = duration
+end
 
 
 HT_eventFunctions = {
 	["Get Effect Duration"] = function(name,ID,tracker,arguments)
-		EVENT_MANAGER:RegisterForEvent(name,EVENT_EFFECT_CHANGED,function(_,_,_,_,_,_,expireTime,stackCount,_,_,_,_,_,targetName) 
+		EVENT_MANAGER:RegisterForEvent(name,EVENT_EFFECT_CHANGED,function(_,result,_,_,_,_,expireTime,stackCount,_,_,_,_,_,targetName) 
 			targetName = HT_removeGender(targetName)
 			if not arguments.dontUpdateFromThisEvent then
-				targetName = HT_removeGender(targetName)
 				if expireTime > (tracker.expiresAt[targetName] or 0) or (not arguments.overwriteShorterDuration) then
 					tracker.expiresAt[targetName] = expireTime
 					tracker.duration[targetName] = expireTime-GetGameTimeSeconds()
 					tracker.stacks[targetName] = stackCount
 				end
 			end
+
 			if arguments.luaCodeToExecute then
+				hyperToolsTracker = tracker
+				hyperToolsGlobal.result = result
+				hyperToolsGlobal.expireTime = expireTime
+				hyperToolsGlobal.stackCount = stackCount
+				hyperToolsGlobal.targetName = targetName
 				zo_loadstring(arguments.luaCodeToExecute)()
+				hyperToolsGlobal = {}
+				tracker = hyperToolsTracker
 			end
 		end) 
 		EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID,ID)
@@ -32,7 +48,11 @@ HT_eventFunctions = {
 
 			if arguments.luaCodeToExecute then
 				hyperToolsTracker = tracker
+				hyperToolsGlobal.result = result
+				hyperToolsGlobal.hitValue = hitValue
+				hyperToolsGlobal.targetName = HT_removeGender(sourceName)
 				zo_loadstring(arguments.luaCodeToExecute)()
+				hyperToolsGlobal = {}
 				tracker = hyperToolsTracker
 			end
 

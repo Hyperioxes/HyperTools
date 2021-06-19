@@ -1,0 +1,1 @@
+ZO_CreateStringId("SI_BINDING_NAME_TOGGLE_MENU_FRAME", "Toggle HyperTools Menu")

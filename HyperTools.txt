@@ -1,6 +1,6 @@
 ## APIVersion: 100034
 ## Title: HyperTools
-## Version: 0.6a
+## Version: 0.7
 ## Author: Hyperioxes
 ## Description: Tool for creating UI elements on your screen
 ## SavedVariables: HyperToolsSV
@@ -24,3 +24,5 @@ Constants.lua
 Transmission.lua
 3D.lua
 Matrix.lua
+Bindings.lua
+Bindings.xml
