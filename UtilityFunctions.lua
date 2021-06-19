@@ -215,3 +215,16 @@ function HT_nullify(t)
 		HT_nullify(v)
 	end
 end
+
+function HT_GetDistance(unit1,unit2)
+	if not DoesUnitExist(unit1) or not DoesUnitExist(unit2) then
+		return -1
+	end
+	local zone1, x1, y1, z1 = GetUnitWorldPosition(unit1)
+	local zone2, x2, y2, z2 = GetUnitWorldPosition(unit2)
+	if zone1~=zone2 then
+		return -1
+	else
+		return(zo_sqrt((x1 - x2)^2 + (z1 - z2)^2) / 100)
+	end
+end

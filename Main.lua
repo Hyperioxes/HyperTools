@@ -7,7 +7,7 @@ HT = {
     duration        = {},
     stacks        = {},
 }
---lol
+
 function HT_adjustDataForNewestVersion(data)
     local function searchThroughTable(t)
         for _,event in pairs(t.events) do
@@ -40,6 +40,10 @@ function HT_adjustDataForNewestVersion(data)
 
         if not t.cooldownColor then
             t.cooldownColor = {0,0,0,0.7}
+        end
+
+        if not t.load.always then
+            t.load.always = false
         end
 
 	    for k,v in pairs(t.children) do

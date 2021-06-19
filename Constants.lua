@@ -95,5 +95,8 @@ conditionArgs1 = {
 	["Group Role"] = function(tracker,override)
 		return GetGroupMemberSelectedRole("group"..override.targetNumber)
 	end,
+	["Distance to target"] = function(tracker,override)
+		return HT_GetDistance("player","group"..override.targetNumber)
+	end,
 	
 }
