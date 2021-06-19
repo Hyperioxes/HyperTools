@@ -7,7 +7,7 @@ HT = {
     duration        = {},
     stacks        = {},
 }
-
+--lol
 function HT_adjustDataForNewestVersion(data)
     local function searchThroughTable(t)
         for _,event in pairs(t.events) do
