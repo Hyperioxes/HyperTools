@@ -72,9 +72,9 @@ local function createProgressBar(parent,t)
 			end
 
 			if targetOverride then
-				container:SetHidden(not override.show or DisplayGroupControl(targetOverride))
+				container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(targetOverride))
 			else
-				container:SetHidden(not override.show)
+				container:SetHidden((not override.show and not t.load.always))
 			end
 			local barX = t.sizeX-t.sizeY
 			local barY = t.sizeY
@@ -92,6 +92,8 @@ local function createProgressBar(parent,t)
 			timer:SetText(getDecimals(remainingTime,t.decimals))
 			label:SetText(override.text)
 			stacks:SetText(stacksCount)
+			backdrop:SetCenterColor(unpack(override.backgroundColor))
+			backdrop:SetEdgeColor(unpack(override.outlineColor))
 		else
 			container:SetHidden(true)
 		end
@@ -332,9 +334,9 @@ local function createIconTracker(parent,t)
 				if operators[condition.operator](conditionArgs1[condition.arg1](t,override),condition.arg2) then conditionResults[condition.result](override,condition.resultArguments) end
 			end
 			if targetOverride then
-				container:SetHidden(not override.show or DisplayGroupControl(targetOverride))
+				container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(targetOverride))
 			else
-				container:SetHidden(not override.show)
+				container:SetHidden((not override.show and not t.load.always))
 			end
 			local remainingTime = math.max((t.expiresAt[HT_targets[override.target](override.targetNumber)] or 0) - GetGameTimeSeconds(),0)
 			local duration = math.max((t.duration[HT_targets[override.target](override.targetNumber)] or 0),0)
@@ -351,6 +353,8 @@ local function createIconTracker(parent,t)
 			stacks:SetText(stacksCount)
 			icon:SetColor(unpack(override.barColor))
 			animationTexture:SetHidden(not override.showProc)
+			background:SetColor(unpack(override.backgroundColor))
+			outline:SetEdgeColor(unpack(override.outlineColor))
 		else
 			container:SetHidden(true)
 		end
@@ -485,15 +489,19 @@ local function createGroup(parent,t,i)
 			end
 
 			if i then
-				container:SetHidden(not override.show or DisplayGroupControl(i))
+				container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(i))
 				override.target = "Group"
 			else
-				container:SetHidden(not override.show)
+				container:SetHidden((not override.show and not t.load.always))
 			end
 
 			for _,childName in pairs(t.children) do
 				HT_findContainer(childName,i):Process(i)
 			end
+
+
+			backdrop:SetCenterColor(unpack(override.backgroundColor))
+			backdrop:SetEdgeColor(unpack(override.outlineColor))
 
 			if CST.name == t.name and HT_settingsVisible then -- If the group is currently selected in settings
 				backdrop:SetCenterColor(0.5,0.9,1,0.3)

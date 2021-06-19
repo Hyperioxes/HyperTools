@@ -68,6 +68,7 @@ HT_trackers = {
 		itemSets = {},
 		zones = {},
 		bosses = {},
+		always = false,
 	},
 	},
 	},

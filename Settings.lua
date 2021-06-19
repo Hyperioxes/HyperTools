@@ -834,6 +834,7 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 		itemSets = {},
 		zones = {},
 		bosses = {},
+		always = false,
 	},
 	}
 	initializeTrackerFunctions[type](HT_Trackers,HTSV.trackers[name])
@@ -1866,6 +1867,14 @@ function HT_Settings_initializeUI()
 	CST.load.never = arg
 	end)
 	createLabel(generalBackground,"neverCheckboxLabel",150,30,55,340,TOPLEFT,TOPLEFT,"Never",0,1)
+
+	createCheckbox(generalBackground,"alwaysCheckbox", 30,30,115,340,TOPLEFT,TOPLEFT,CST.load.always,function(arg)
+		CST.load.always = arg
+	end)
+	createLabel(generalBackground,"alwaysCheckboxLabel",150,30,155,340,TOPLEFT,TOPLEFT,"Always",0,1)
+
+
+
 
 	createCheckbox(generalBackground,"combatCheckbox", 30,30,235,340,TOPLEFT,TOPLEFT,CST.load.inCombat,function(arg) 
 	CST.load.inCombat = arg

@@ -1,4 +1,5 @@
 function HT_processLoad(trackerLoad)
+	if trackerLoad.always then return true end
 	if trackerLoad.never then return false end
 	if trackerLoad.inCombat and not IsUnitInCombat("player") then return false end
 	if trackerLoad.role ~= GetGroupMemberSelectedRole("player") and trackerLoad.role ~= 0 and GetGroupMemberSelectedRole("player") ~= 0 then return false end
