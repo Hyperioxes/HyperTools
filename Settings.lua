@@ -29,34 +29,13 @@ local fontSizes = {
 	8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,28,30,32,34,36,40,48,54
 }
 
-local resourceTexts = {
-	["current/max"] = function(t)
-		return t.current.."/"..t.max
-	end
-}
-
-
 local alignments = {
 	["LEFT"] = 0,
 	["CENTER"] = 1,
 	["RIGHT"] = 2,
 }
 
-local resources = {
-	["Health"] = -2,
-	["Stamina"] = 6,
-	["Magicka"] = 0,
-	["Werewolf"] = 1,
-}
-local resourcesReverse = {
-	[-2] = "Health",
-	[0] = "Magicka",
-	[6] = "Stamina",
-	[1] = "Werewolf",
-}
-
 HT_settingsVisible = false
-
 
 local function findFreeSlotInTable(table)
 	for i=1, 1000 do
@@ -266,33 +245,23 @@ local function selectCurrentlyEditedBackground(number)
 	local background = HT_Settings:GetNamedChild("background")
 	local selectedTrackerSettingsBackdrop = background:GetNamedChild("selectedTrackerSettingsBackdrop")
 	local display = selectedTrackerSettingsBackdrop:GetNamedChild("displayBackground")
-	local displayResource = selectedTrackerSettingsBackdrop:GetNamedChild("displayBackgroundResource")
 	local displayButton = selectedTrackerSettingsBackdrop:GetNamedChild("button11")
 	local condition = selectedTrackerSettingsBackdrop:GetNamedChild("conditionBackground")
 	local conditionButton = selectedTrackerSettingsBackdrop:GetNamedChild("button22")
 	local event = selectedTrackerSettingsBackdrop:GetNamedChild("eventBackground")
 	local eventButton = selectedTrackerSettingsBackdrop:GetNamedChild("button12")
 	local general = selectedTrackerSettingsBackdrop:GetNamedChild("generalBackground")
-	local generalResource = selectedTrackerSettingsBackdrop:GetNamedChild("generalBackgroundResource")
 	local generalButton = selectedTrackerSettingsBackdrop:GetNamedChild("button21")
 	display:SetHidden(true)
-	displayResource:SetHidden(true)
 	displayButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 	condition:SetHidden(true)
 	conditionButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 	event:SetHidden(true)
 	eventButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 	general:SetHidden(true)
-	generalResource:SetHidden(true)
 	generalButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 	if number == 11 then
-		if CST.type == "Resource Bar" then
-			displayResource:SetHidden(false)
-			display:SetHidden(true)
-		else
-			displayResource:SetHidden(true)
-			display:SetHidden(false)
-		end
+		display:SetHidden(false)
 		displayButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
 	elseif number == 22 then
 		condition:SetHidden(false)
@@ -301,21 +270,10 @@ local function selectCurrentlyEditedBackground(number)
 		event:SetHidden(false)
 		eventButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
 	elseif number == 21 then
-		if CST.type == "Resource Bar" then
-			general:SetHidden(true)
-			generalResource:SetHidden(false)
-		else
-			general:SetHidden(false)
-			generalResource:SetHidden(true)
-		end
+		general:SetHidden(false)
 		generalButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
 	end
 end
-
-
-
-
-
 
 local function updateDisplayBackground()
 	local background = HT_Settings:GetNamedChild("background")
@@ -381,40 +339,6 @@ local function updateDisplayBackground()
 	drawLevelDropdown.selection = CST.drawLevel
 	drawLevelDropdown:updateDropdown()
 end
-
-local function updateDisplayBackgroundResource()
-	local background = HT_Settings:GetNamedChild("background")
-	local selectedTrackerSettingsBackdrop = background:GetNamedChild("selectedTrackerSettingsBackdrop")
-	local displayBackgroundResource = selectedTrackerSettingsBackdrop:GetNamedChild("displayBackgroundResource")
-	local TextPosXEditbox = displayBackgroundResource:GetNamedChild("TextPosXEditbox")
-	local cstYposEditbox = displayBackgroundResource:GetNamedChild("cstYposEditbox")
-	local dropdownFonts = displayBackgroundResource:GetNamedChild("fontDropdown")
-	local dropdownFontsSize = displayBackgroundResource:GetNamedChild("fontSizeDropdown")
-	local text = displayBackgroundResource:GetNamedChild("textDropdown")
-	local textAlignmentDropdown = displayBackgroundResource:GetNamedChild("textAlignmentDropdown")
-	local height = displayBackgroundResource:GetNamedChild("cstXsizeEditbox")
-	local width = displayBackgroundResource:GetNamedChild("cstYsizeEditbox")
-	local colorpicker = displayBackgroundResource:GetNamedChild("colorpicker")
-	local colorpicker2 = displayBackgroundResource:GetNamedChild("colorpicker2")
-	local colorpicker3 = displayBackgroundResource:GetNamedChild("colorpicker3")
-	dropdownFonts.selection = CST.font
-	dropdownFonts:updateDropdown()
-	dropdownFontsSize.selection = CST.fontSize
-	dropdownFontsSize:updateDropdown()
-	text.selection = CST.text
-	text:updateDropdown()
-	textAlignmentDropdown.selection = CST.textAlignment
-	textAlignmentDropdown:updateDropdown()
-	height:SetText(math.floor(CST.sizeX))
-	width:SetText(math.floor(CST.sizeY))
-	colorpicker:SetColor(unpack(CST.barColor))
-	colorpicker2:SetColor(unpack(CST.outlineColor))
-	colorpicker3:SetColor(unpack(CST.backgroundColor))
-	TextPosXEditbox:SetText(math.floor(CST.xOffset))
-	cstYposEditbox:SetText(math.floor(CST.yOffset))
-end
-
-
 
 local function updateGeneralBackground()
 	local background = HT_Settings:GetNamedChild("background")
@@ -485,18 +409,6 @@ local function updateGeneralBackground()
 	
 end
 
---[[local function updateGeneralBackgroundResources()
-	local background = HT_Settings:GetNamedChild("background")
-	local selectedTrackerSettingsBackdrop = background:GetNamedChild("selectedTrackerSettingsBackdrop")
-	local generalBackgroundResource = selectedTrackerSettingsBackdrop:GetNamedChild("generalBackgroundResource")
-	local name = generalBackgroundResource:GetNamedChild("NameEditbox")
-	local IDsDropdown = generalBackgroundResource:GetNamedChild("IDs dropdown")
-
-	name:SetText(CST.name)
-	IDsDropdown.selection = resourcesReverse[CST.IDs[1]]
-	--[[IDsDropdown:updateDropdown()
-end]]
-
 local function updateConditionBackground()
 	local background = HT_Settings:GetNamedChild("background")
 	local selectedTrackerSettingsBackdrop = background:GetNamedChild("selectedTrackerSettingsBackdrop")
@@ -558,10 +470,22 @@ local function updateEventBackground(ignoreSelf)
 		arg1EditboxAlt:SetHidden(false)
 		arg1EditboxAlt:SetText(CST.events[CSE].arguments.cooldown)
 		overwriteShortedDurationCheckboxAlt:SetHidden(true)
+		onlyYourCastCheckbox:SetHidden(false)
+		IDsDropdown:SetHidden(false)
+		dontUpdateFromThisEvent:SetHidden(false)
 	elseif CST.events[CSE].type == "Get Effect Duration" then
 		overwriteShortedDurationCheckboxAlt:SetHidden(false)
 		overwriteShortedDurationCheckboxAlt:Update(CST.events[CSE].arguments.overwriteShorterDuration)
 		arg1EditboxAlt:SetHidden(true)
+		onlyYourCastCheckbox:SetHidden(false)
+		IDsDropdown:SetHidden(false)
+		dontUpdateFromThisEvent:SetHidden(false)
+	elseif CST.events[CSE].type == "Entering/Exiting Combat" then
+		overwriteShortedDurationCheckboxAlt:SetHidden(true)
+		arg1EditboxAlt:SetHidden(true)
+		onlyYourCastCheckbox:SetHidden(true)
+		IDsDropdown:SetHidden(true)
+		dontUpdateFromThisEvent:SetHidden(true)
 	end
 
 	onlyYourCastCheckbox:Update(CST.events[CSE].arguments.onlyYourCast)
@@ -612,9 +536,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 			selectCurrentlyEditedBackground(11)
 			relocateLeftSide()
 			updateDisplayBackground()
-			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 		end,nil,nil,true)
@@ -624,9 +546,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 
 			relocateLeftSide()
 			updateDisplayBackground()
-			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 			button:SetHidden(true)
@@ -649,9 +569,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 			button:SetHidden(true)
 			relocateLeftSide()
 			updateDisplayBackground()
-			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 
@@ -664,9 +582,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 				CTC = tracker.name
 				relocateLeftSide()
 				updateDisplayBackground()
-				updateDisplayBackgroundResource()
 				updateGeneralBackground()
-				--updateGeneralBackgroundResources()
 				updateConditionBackground()
 				updateEventBackground()
 			end,nil,"/esoui/art/buttons/scrollbox_downarrow_up.dds",true)
@@ -905,9 +821,7 @@ function HT_Settings_initializeUI()
 		selectRightSideBackground(0)
 		relocateLeftSide() 
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 	end,nil,nil,true)
@@ -917,9 +831,7 @@ function HT_Settings_initializeUI()
 		CTC = getTrackerFromName(CTC,HTSV.trackers).parent
 		relocateLeftSide() 
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 	end,"Return",nil,true)
@@ -977,7 +889,11 @@ function HT_Settings_initializeUI()
 	newTrackersBackdrop:SetHidden(false)
 	for i=2, 6 do
 		local icon = createTexture(newTrackersBackdrop,"icon"..i,100,100,0,100*(i-2),TOPLEFT,TOPLEFT,iconsByNumber[i],2)
-		local button = createButton(icon,"button"..i,425,100,0,0,TOPLEFT,TOPRIGHT,function() selectRightSideBackground(i) relocateLeftSide() updateDisplayBackground() updateDisplayBackgroundResource() end,nil,nil,true)
+		local button = createButton(icon,"button"..i,425,100,0,0,TOPLEFT,TOPRIGHT,function()
+			selectRightSideBackground(i)
+			relocateLeftSide()
+			updateDisplayBackground()
+		end,nil,nil,true)
 		local title = createLabel(button,"title"..i,425,50,0,0,TOP,TOP,typesByNumber[i],1,1,"BOLD_FONT",26)
 		local text = createLabel(button,"text"..i,425,50,0,0,BOTTOM,BOTTOM,textsByNumber[i],1,1,nil,nil)
 	end
@@ -997,24 +913,19 @@ function HT_Settings_initializeUI()
 	local nameEditbox = createEditbox(newProgressBarBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
 
 	end)
-	createLabel(newProgressBarBackdrop,"IdsLabel",175,30,15,110,TOPLEFT,TOPLEFT,"IDs",0,1)
-	local IDsDropdown = createDropdown(newProgressBarBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(selection)
+	local IDsDropdown = createDropdown(newProgressBarBackdrop,"IDs dropdown",175,32,15,195,TOPLEFT,TOPLEFT,{},nil,function(selection)
+	end)
+	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30, 0,0,BOTTOM,TOP,function(editbox)
 
 	end)
+	createLabel(editbox,"IdsLabel",175,0,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
 
-
-
-
-	local editbox = createEditbox(newProgressBarBackdrop,"addIdEditbox",175,30,15,135,TOPLEFT,TOPLEFT,function(editbox)
-
-	end)
-	
-	createButton(newProgressBarBackdrop,"buttonDeleteID",30,30,190,165,TOPLEFT,TOPLEFT,function()
+	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
 		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
 		IDsDropdown:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(newProgressBarBackdrop,"buttonAddID",30,30,188,135,TOPLEFT,TOPLEFT,function() 
+	createButton(editbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 
 		table.insert(IDsDropdown.choices,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
@@ -1070,9 +981,7 @@ function HT_Settings_initializeUI()
 		createNewTracker("Progress Bar",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
 		relocateLeftSide()   
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -1102,24 +1011,20 @@ function HT_Settings_initializeUI()
 	local nameEditbox = createEditbox(newIconTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
 
 	end)
-	createLabel(newIconTrackerBackdrop,"IdsLabel",175,30,15,110,TOPLEFT,TOPLEFT,"IDs",0,1)
 	local IDsDropdown = createDropdown(newIconTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(selection)
 
 	end)
-
-
-
-
-	local editbox = createEditbox(newIconTrackerBackdrop,"addIdEditbox",175,30,15,135,TOPLEFT,TOPLEFT,function(editbox)
+	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
 
 	end)
-	
-	createButton(newIconTrackerBackdrop,"buttonDeleteID",30,30,190,165,TOPLEFT,TOPLEFT,function()
+	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
+
+	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
 		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
 		IDsDropdown:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(newIconTrackerBackdrop,"buttonAddID",30,30,188,135,TOPLEFT,TOPLEFT,function() 
+	createButton(editbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 
 		table.insert(IDsDropdown.choices,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
@@ -1175,9 +1080,7 @@ function HT_Settings_initializeUI()
 		createNewTracker("Icon Tracker",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
 		relocateLeftSide()   
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -1208,24 +1111,20 @@ function HT_Settings_initializeUI()
 	local nameEditbox = createEditbox(newGroupTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
 
 	end)
-	createLabel(newGroupTrackerBackdrop,"IdsLabel",175,30,15,110,TOPLEFT,TOPLEFT,"IDs",0,1)
 	local IDsDropdown = createDropdown(newGroupTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(selection)
 
 	end)
-
-
-
-
-	local editbox = createEditbox(newGroupTrackerBackdrop,"addIdEditbox",175,30,15,135,TOPLEFT,TOPLEFT,function(editbox)
+	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
 
 	end)
-	
-	createButton(newGroupTrackerBackdrop,"buttonDeleteID",30,30,190,165,TOPLEFT,TOPLEFT,function()
+	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
+
+	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
 		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
 		IDsDropdown:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(newGroupTrackerBackdrop,"buttonAddID",30,30,188,135,TOPLEFT,TOPLEFT,function() 
+	createButton(editbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 
 		table.insert(IDsDropdown.choices,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
@@ -1281,9 +1180,7 @@ function HT_Settings_initializeUI()
 		createNewTracker("Group",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
 		relocateLeftSide()   
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -1315,24 +1212,20 @@ function HT_Settings_initializeUI()
 	local nameEditbox = createEditbox(newGroupMemberTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
 
 	end)
-	createLabel(newGroupMemberTrackerBackdrop,"IdsLabel",175,30,15,110,TOPLEFT,TOPLEFT,"IDs",0,1)
 	local IDsDropdown = createDropdown(newGroupMemberTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(selection)
 
 	end)
-
-
-
-
-	local editbox = createEditbox(newGroupMemberTrackerBackdrop,"addIdEditbox",175,30,15,135,TOPLEFT,TOPLEFT,function(editbox)
+	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
 
 	end)
-	
-	createButton(newGroupMemberTrackerBackdrop,"buttonDeleteID",30,30,190,165,TOPLEFT,TOPLEFT,function()
+	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
+
+	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
 		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
 		IDsDropdown:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(newGroupMemberTrackerBackdrop,"buttonAddID",30,30,188,135,TOPLEFT,TOPLEFT,function() 
+	createButton(editbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 
 		table.insert(IDsDropdown.choices,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
@@ -1388,9 +1281,7 @@ function HT_Settings_initializeUI()
 		createNewTracker("Group Member",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
 		relocateLeftSide()   
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		updateGeneralBackground()
-		--updateGeneralBackgroundResources()
 		updateConditionBackground()
 		updateEventBackground()
 		
@@ -1437,9 +1328,7 @@ function HT_Settings_initializeUI()
 			initializeTrackerFunctions[importedTable.type](HT_Trackers,importedTable)
 			relocateLeftSide()   
 			updateDisplayBackground()
-			updateDisplayBackgroundResource()
 			updateGeneralBackground()
-			--updateGeneralBackgroundResources()
 			updateConditionBackground()
 			updateEventBackground()
 		end
@@ -1485,7 +1374,6 @@ function HT_Settings_initializeUI()
 	local editbox = createEditbox(displayBackground,"editbox",475,30,15,90,TOPLEFT,TOPLEFT,function(editbox)
 		CST.icon = editbox:GetText() 
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.icon)
 	createLabel(displayBackground,"autoTextureDropdownLabel",180,30,15,120,TOPLEFT,TOPLEFT,"Set automatic texture from ID",0,1)
@@ -1527,7 +1415,6 @@ function HT_Settings_initializeUI()
 	createEditbox(displayBackground,"textEditbox",200,30,250,205,TOPLEFT,TOPLEFT,function(editbox)
 		CST.text = editbox:GetText() 
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.text)
 	createLabel(displayBackground,"colorpickerText",70,30,15,250,TOPLEFT,TOPLEFT,"Bar",0,1)
@@ -1653,28 +1540,24 @@ function HT_Settings_initializeUI()
 	createEditbox(displayBackground,"TextPosXEditbox",200,30,15,565,TOPLEFT,TOPLEFT,function(editbox)
 		CST.xOffset = editbox:GetText() 
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.xOffset,TEXT_TYPE_NUMERIC)
 	createLabel(displayBackground,"TextPosY",150,30,250,540,TOPLEFT,TOPLEFT,"Y position",0)
 	createEditbox(displayBackground,"cstYposEditbox",200,30,250,565,TOPLEFT,TOPLEFT,function(editbox)
 		CST.yOffset = editbox:GetText() 
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.yOffset,TEXT_TYPE_NUMERIC)
 	createLabel(displayBackground,"TextSizeX",150,30,15,590,TOPLEFT,TOPLEFT,"Width",0)
 	createEditbox(displayBackground,"cstXsizeEditbox",200,30,15,615,TOPLEFT,TOPLEFT,function(editbox)
 		CST.sizeX = editbox:GetText()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.sizeX,TEXT_TYPE_NUMERIC)
 	createLabel(displayBackground,"TextSizeY",150,30,250,590,TOPLEFT,TOPLEFT,"Height",0)
 	createEditbox(displayBackground,"cstYsizeEditbox",200,30,250,615,TOPLEFT,TOPLEFT,function(editbox)
 		CST.sizeY = editbox:GetText() 
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.sizeY,TEXT_TYPE_NUMERIC)
 	
@@ -1687,131 +1570,7 @@ function HT_Settings_initializeUI()
 	end)
 	createLabel(outlineThicknessDropdown,"outlineThicknessLabel",150,30,0,-25,TOPLEFT,TOPLEFT,"Outline Thickness",0)
 
-
-
-
-
-
-	--[[createDropdown(displayBackground,"anchorToGroupMemberDropdown",50,30,320,405,TOPLEFT,TOPLEFT,{1,2,3,4,5,6,7,8,9,10,11,12},CST.targetNumber,function(selection)
-		if CST.name ~= "none" then
-			CST.targetNumber = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end)
-	createCheckbox(displayBackground,"anchorToGroupMemberCheckbox", 30,30,270,370,TOPLEFT,TOPLEFT,CST.anchorToGroupMember,function(arg) 
-		CST.anchorToGroupMember = arg
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end)
-	createLabel(displayBackground,"anchorToGroupMemberCheckboxLabel",150,30,315,370,TOPLEFT,TOPLEFT,"Anchor to group member",0,1)]]
-
 	--------- DISPLAY -------------
-
-
-	--------- DISPLAY RESOURCE-------------
-	local displayBackgroundResource = createBackground(selectedTrackerSettingsBackdrop,"displayBackgroundResource",525,725,0,50,TOPLEFT,TOPLEFT)
-
-	createTexture(displayBackgroundResource,"edge1",165,2,15,22.5,TOPLEFT,TOPLEFT,"")
-	createLabel(displayBackgroundResource,"displayLabel",150,30,180,10,TOPLEFT,TOPLEFT,"DISPLAY",1,1,"BOLD_FONT",26)
-	createTexture(displayBackgroundResource,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
-
-
-	createLabel(displayBackgroundResource,"fontLabel",150,30,15,180,TOPLEFT,TOPLEFT,"Font",0,1)
-	createDropdown(displayBackgroundResource,"fontDropdown",150,30,15,205,TOPLEFT,TOPLEFT,fonts,CST.font,function(selection)
-		if CST.name ~= "none" then
-			CST.font = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end)
-	createLabel(displayBackgroundResource,"fontSizeLabel",50,30,160,180,TOPLEFT,TOPLEFT,"Font Size",0,1)
-	createDropdown(displayBackgroundResource,"fontSizeDropdown",50,30,160,205,TOPLEFT,TOPLEFT,fontSizes,CST.fontSize,function(selection)
-		if CST.name ~= "none" then
-			CST.fontSize = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end)
-	createLabel(displayBackgroundResource,"textAlignmentLabel",150,30,250,120,TOPLEFT,TOPLEFT,"Text Alignment",0,1)
-	createDropdown(displayBackgroundResource,"textAlignmentDropdown",200,30,250,145,TOPLEFT,TOPLEFT,getKeysFromTable(alignments),CST.textAlignment,function(selection)
-		if CST.name ~= "none" then
-			CST.textAlignment = alignments[selection]
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end)
-	createLabel(displayBackgroundResource,"textLabel",150,30,250,180,TOPLEFT,TOPLEFT,"Text",0,1)
-	createDropdown(displayBackgroundResource,"textDropdown",200,30,250,205,TOPLEFT,TOPLEFT,getKeysFromTable(resourceTexts),CST.text,function(selection)
-		if CST.name ~= "none" then
-			CST.text = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end)
-	
-	createLabel(displayBackgroundResource,"colorpickerText",70,30,15,250,TOPLEFT,TOPLEFT,"Color",0,1)
-	createColorpicker(displayBackgroundResource,"colorpicker",70,30,15,275,TOPLEFT,TOPLEFT,CST.barColor,function(color) 
-		if CST.name ~= "none" then
-			if type(color) == "table" then
-				CST.barColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-			end
-		end
-	end)
-
-
-	createLabel(displayBackgroundResource,"colorpickerText2",70,30,100,250,TOPLEFT,TOPLEFT,"Outline",0,1)
-	createColorpicker(displayBackgroundResource,"colorpicker2",70,30,100,275,TOPLEFT,TOPLEFT,CST.outlineColor,function(color) 
-		if CST.name ~= "none" then
-			if type(color) == "table" then
-				CST.outlineColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-			end
-		end
-	end)
-	createLabel(displayBackgroundResource,"colorpickerText3",70,30,185,250,TOPLEFT,TOPLEFT,"Background",0,1)
-	createColorpicker(displayBackgroundResource,"colorpicker3",70,30,185,275,TOPLEFT,TOPLEFT,CST.backgroundColor,function(color) 
-		if CST.name ~= "none" then
-			if type(color) == "table" then
-				CST.backgroundColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-			end
-		end
-	end)
-
-
-	createTexture(displayBackgroundResource,"edge3",475,2,15,400,TOPLEFT,TOPLEFT,"")
-	createLabel(displayBackgroundResource,"TextPosX",150,30,15,430,TOPLEFT,TOPLEFT,"X position",0)
-	createEditbox(displayBackgroundResource,"TextPosXEditbox",200,30,15,455,TOPLEFT,TOPLEFT,function(editbox)
-		if CST.name ~= "none" then
-			CST.xOffset = editbox:GetText() 
-			updateDisplayBackgroundResource()
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end,CST.xOffset,TEXT_TYPE_NUMERIC)
-	createLabel(displayBackgroundResource,"TextPosY",150,30,250,430,TOPLEFT,TOPLEFT,"Y position",0)
-	createEditbox(displayBackgroundResource,"cstYposEditbox",200,30,250,455,TOPLEFT,TOPLEFT,function(editbox)
-		if CST.name ~= "none" then
-			CST.yOffset = editbox:GetText() 
-			updateDisplayBackgroundResource()
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end,CST.yOffset,TEXT_TYPE_NUMERIC)
-	createLabel(displayBackgroundResource,"TextSizeX",150,30,15,520,TOPLEFT,TOPLEFT,"Width",0)
-	createEditbox(displayBackgroundResource,"cstXsizeEditbox",200,30,15,545,TOPLEFT,TOPLEFT,function(editbox)
-		if CST.name ~= "none" then
-			CST.sizeX = editbox:GetText()
-			updateDisplayBackgroundResource()
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end,CST.sizeX,TEXT_TYPE_NUMERIC)
-	createLabel(displayBackgroundResource,"TextSizeY",150,30,250,520,TOPLEFT,TOPLEFT,"Height",0)
-	createEditbox(displayBackgroundResource,"cstYsizeEditbox",200,30,250,545,TOPLEFT,TOPLEFT,function(editbox)
-		if CST.name ~= "none" then
-			CST.sizeY = editbox:GetText() 
-			updateDisplayBackgroundResource()
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-		end
-	end,CST.sizeY,TEXT_TYPE_NUMERIC)
-	--------- DISPLAY RESOURCE-------------
-
-
-
 
 	--------- GENERAL -------------
 	local generalBackground = createBackground(selectedTrackerSettingsBackdrop,"generalBackground",525,725,0,50,TOPLEFT,TOPLEFT)
@@ -1911,7 +1670,6 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.bosses)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end, "-",nil,nil)
 	createButton(generalBackground,"buttonAddBoss",30,30,188,405,TOPLEFT,TOPLEFT,function() 
 
@@ -1921,7 +1679,6 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.bosses)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end,"+",nil,nil)
 
 
@@ -1941,7 +1698,6 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.skills)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end, "-",nil,nil)
 	createButton(generalBackground,"buttonAddSkill",30,30,188,625,TOPLEFT,TOPLEFT,function() 
 
@@ -1951,7 +1707,6 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.skills)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end,"+",nil,nil)
 
 
@@ -1971,7 +1726,6 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end, "-",nil,nil)
 	createButton(generalBackground,"buttonAdditemSet",30,30,408,625,TOPLEFT,TOPLEFT,function() 
 
@@ -1981,7 +1735,6 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end,"+",nil,nil)
 
 
@@ -2000,7 +1753,6 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.zones)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end, "-",nil,nil)
 	createButton(generalBackground,"buttonAddzone",30,30,408,505,TOPLEFT,TOPLEFT,function() 
 
@@ -2010,57 +1762,11 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.load.zones)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end,"+",nil,nil)
-
-
-
 
 	--------- GENERAL -------------
 
 
-	--------- GENERAL RESOURCE-------------
-	local generalBackgroundResource = createBackground(selectedTrackerSettingsBackdrop,"generalBackgroundResource",525,725,0,50,TOPLEFT,TOPLEFT)
-	generalBackgroundResource:SetHidden(true)
-	createTexture(generalBackgroundResource,"edge1",165,2,15,22.5,TOPLEFT,TOPLEFT,"")
-	createLabel(generalBackgroundResource,"generalLabel",150,30,180,10,TOPLEFT,TOPLEFT,"GENERAL",1,1,"BOLD_FONT",26)
-	createTexture(generalBackgroundResource,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
-	createLabel(generalBackgroundResource,"Name",150,30,15,60,TOPLEFT,TOPLEFT,"Name",0,1)
-	local editbox = createEditbox(generalBackgroundResource,"NameEditbox",200,30,15,90,TOPLEFT,TOPLEFT,function(editbox)
-		  if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.name = editbox:GetText() 
-		
-		relocateLeftSide()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end,CST.name)
-
-
-	createLabel(generalBackgroundResource,"IdsLabel",150,30,15,140,TOPLEFT,TOPLEFT,"Resource Types",0,1)
-	local dropdown = createDropdown(generalBackgroundResource,"IDs dropdown",200,30,15,165,TOPLEFT,TOPLEFT,getKeysFromTable(resources),resourcesReverse[CST.IDs[1]],function(selection)
-		  if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.IDs = {resources[selection]}
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end)
-
-
-
-
-
-	createTexture(generalBackgroundResource,"edge3",165,2,15,400,TOPLEFT,TOPLEFT,"")
-	createLabel(generalBackgroundResource,"loadLabel",150,30,180,387.5,TOPLEFT,TOPLEFT,"LOAD",1,1,"BOLD_FONT",26)
-	createTexture(generalBackgroundResource,"edge4",165,2,330,400,TOPLEFT,TOPLEFT,"")
-
-
-	--createCheckbox(generalBackgroundResource,"combatCheckbox", 30,30,15,450,TOPLEFT,TOPLEFT,CST.load.combat,function(arg) 
-	--if CST.name ~= "none" then
-	--	CST.load.combat = arg
-	--end
-	--end)
-	createLabel(generalBackgroundResource,"combatCheckboxLabel",150,30,55,450,TOPLEFT,TOPLEFT,"In Combat",0,1)
-	--------- GENERAL RESOURCE-------------
-
-
-	
 	--------- CONDITIONS -------------
 	local pickProperResultControl = {
 		["Set Bar Color"] = function() HT_Settings:GetNamedChild("background"):GetNamedChild("selectedTrackerSettingsBackdrop"):GetNamedChild("conditionBackground"):GetNamedChild("resultColorpicker"):SetHidden(false) end,
@@ -2168,20 +1874,16 @@ function HT_Settings_initializeUI()
 	createLabel(eventBackground,"displayLabel",150,30,180,10,TOPLEFT,TOPLEFT,"EVENT",1,1,"BOLD_FONT",26)
 	createTexture(eventBackground,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 
-	
-	createLabel(eventBackground,"IdsLabel",175,30,300,40,TOPLEFT,TOPLEFT,"IDs",0,1)
 	local dropdown = createDropdown(eventBackground,"IDs dropdown",175,32,300,100,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.Ids,HT_pickAnyElement(CST.events[CSE].arguments.Ids),function(selection)
 
 	end)
 
-	
-
-
-	local editbox = createEditbox(eventBackground,"addIdEditbox",175,30,300,70,TOPLEFT,TOPLEFT,function(editbox)
+	local editbox = createEditbox(dropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
 
 	end)
+	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
 
-	createButton(eventBackground,"buttonDeleteID",30,30,475,100,TOPLEFT,TOPLEFT,function()
+	createButton(dropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		removeElementFromTable(CST.events[CSE].arguments.Ids,dropdown.selection)
 		
@@ -2189,10 +1891,9 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(eventBackground,"buttonAddID",30,30,473,70,TOPLEFT,TOPLEFT,function() 
+	createButton(editbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 
 		table.insert(CST.events[CSE].arguments.Ids,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
 		
@@ -2200,11 +1901,7 @@ function HT_Settings_initializeUI()
 		dropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		updateDisplayBackgroundResource()
 	end,nil,"/esoui/art/buttons/plus_up.dds",nil)
-
-
-
 
 	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,170,TOPLEFT,TOPLEFT,function(editbox)
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
