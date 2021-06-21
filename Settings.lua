@@ -1377,7 +1377,7 @@ function HT_Settings_initializeUI()
 		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.icon)
 	createLabel(displayBackground,"autoTextureDropdownLabel",180,30,15,120,TOPLEFT,TOPLEFT,"Set automatic texture from ID",0,1)
-	local autoTextureDropdown = createDropdown(displayBackground,"autoTextureDropdown",200,30,15,145,TOPLEFT,TOPLEFT,CST.IDs,HT_pickAnyElement(CST.IDs,0),function(selection)
+	local autoTextureDropdown = createDropdown(displayBackground,"autoTextureDropdown",200,30,15,145,TOPLEFT,TOPLEFT,HT_getIdsFromAllEvents(CST),HT_pickAnyElement(HT_getIdsFromAllEvents(CST),0),function(selection)
 		
 	end)
 	createButton(displayBackground,"button",200,30,250,145,TOPLEFT,TOPLEFT,function() 
