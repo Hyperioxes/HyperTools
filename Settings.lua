@@ -1,5 +1,5 @@
 local WM = GetWindowManager()
-
+local version = "0.8b"
 
 local importEditboxUpdated = false
 
@@ -525,9 +525,9 @@ local function createLeftSidePanelButton(parent,counter,t)
 				local holdCopy = HT_deepcopy(tracker)
 				holdCopy.name = newName
 				getChildrenFromName(tracker.parent,HTSV.trackers)[newName] = holdCopy
-
-				initializeTrackerFunctions[holdCopy.type](HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers)),holdCopy)
-				
+				if getTrackerFromName(holdCopy.parent,HTSV.trackers).type ~= "Group Member" then
+					initializeTrackerFunctions[holdCopy.type](HT_findContainer(tracker),holdCopy)
+				end
 			end
 			
 			selectRightSideBackground(1)
@@ -680,7 +680,7 @@ end
 local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targetNumber,event)
 	local backroundColorDefault = {0,0,0,0.4}
 	local outlineColorDefault = {0,0,0,1}
-	if type == 'Group' then
+	if type == 'Group' or type == 'Group Member' then
 		backroundColorDefault = {0,0,0,0}
 		outlineColorDefault = {0,0,0,0}
 	end
@@ -785,7 +785,9 @@ function HT_Settings_initializeUI()
 		updateFn = function(dialog) 
 			if not importEditboxUpdated then 
 				dialog:GetNamedChild("EditBox"):SetMaxInputChars(30000)
-				dialog:GetNamedChild("EditBox"):SetText(convertToString(CST)) 
+				local tableToExport = HT_deepcopy(CST)
+				HT_nullify(tableToExport)
+				dialog:GetNamedChild("EditBox"):SetText(convertToString(tableToExport))
 				importEditboxUpdated = true 
 			end 
 		end,
@@ -813,6 +815,7 @@ function HT_Settings_initializeUI()
 	CST = HTSV.trackers["none"] -- Currently Selected Tracker
 
 	local background = createBackground(HT_Settings,"background",800,825,0,0,TOPLEFT,TOPLEFT)
+	local versionLabel = createLabel(background,'versionLabel',100,30,0,0,BOTTOMLEFT,BOTTOMLEFT,'Hyper Tools '..version)
 	local exitButton = createButton(background,"exitButton",25,25,0,0,TOPRIGHT,TOPRIGHT,function() hideUI() end,nil,"/esoui/art/buttons/decline_up.dds",true)
 	------ BACKGROUND ON THE LEFT WITH ALL EXISTING TRACKERS ----------------
 	local eTB = createBackground(background,"eTB",200,775,25,25,TOPLEFT,TOPLEFT) -- existing trackers background
@@ -979,11 +982,7 @@ function HT_Settings_initializeUI()
 
 	local buttonCreateTracker = createButton(newProgressBarBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
 		createNewTracker("Progress Bar",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
-		relocateLeftSide()   
-		updateDisplayBackground()
-		updateGeneralBackground()
-		updateConditionBackground()
-		updateEventBackground()
+
 		
 		nameEditbox:SetText("")
 		textEditbox:SetText("")
@@ -999,6 +998,15 @@ function HT_Settings_initializeUI()
 		TargetNumberDropdown:updateDropdown()
 		dropdown2.selection = "Get Effect Duration"
 		dropdown2:updateDropdown()
+
+
+		updateDisplayBackground()
+		updateGeneralBackground()
+		updateConditionBackground()
+		updateEventBackground()
+		relocateLeftSide()
+		relocateLeftSide()
+
 	end,"Create",nil,true)
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (PROGRESS BAR) ----------------
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (ICON TRACKER) ----------------
@@ -1078,11 +1086,7 @@ function HT_Settings_initializeUI()
 
 	local buttonCreateTracker = createButton(newIconTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
 		createNewTracker("Icon Tracker",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
-		relocateLeftSide()   
-		updateDisplayBackground()
-		updateGeneralBackground()
-		updateConditionBackground()
-		updateEventBackground()
+
 		
 		nameEditbox:SetText("")
 		textEditbox:SetText("")
@@ -1098,6 +1102,14 @@ function HT_Settings_initializeUI()
 		TargetNumberDropdown:updateDropdown()
 		dropdown2.selection = "Get Effect Duration"
 		dropdown2:updateDropdown()
+
+		relocateLeftSide()
+		relocateLeftSide()
+		updateDisplayBackground()
+		updateGeneralBackground()
+		updateConditionBackground()
+		updateEventBackground()
+
 	end,"Create",nil,true)
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (ICON TRACKER) ----------------
 
@@ -1178,11 +1190,7 @@ function HT_Settings_initializeUI()
 
 	local buttonCreateTracker = createButton(newGroupTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
 		createNewTracker("Group",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
-		relocateLeftSide()   
-		updateDisplayBackground()
-		updateGeneralBackground()
-		updateConditionBackground()
-		updateEventBackground()
+
 		
 		nameEditbox:SetText("")
 		textEditbox:SetText("")
@@ -1198,6 +1206,14 @@ function HT_Settings_initializeUI()
 		TargetNumberDropdown:updateDropdown()
 		dropdown2.selection = "Get Effect Duration"
 		dropdown2:updateDropdown()
+
+
+		relocateLeftSide()
+		relocateLeftSide()
+		updateDisplayBackground()
+		updateGeneralBackground()
+		updateConditionBackground()
+		updateEventBackground()
 	end,"Create",nil,true)
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (GROUP) ----------------
 
@@ -1279,11 +1295,7 @@ function HT_Settings_initializeUI()
 
 	local buttonCreateTracker = createButton(newGroupMemberTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
 		createNewTracker("Group Member",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
-		relocateLeftSide()   
-		updateDisplayBackground()
-		updateGeneralBackground()
-		updateConditionBackground()
-		updateEventBackground()
+
 		
 		nameEditbox:SetText("")
 		textEditbox:SetText("")
@@ -1299,6 +1311,14 @@ function HT_Settings_initializeUI()
 		TargetNumberDropdown:updateDropdown()
 		dropdown2.selection = "Get Effect Duration"
 		dropdown2:updateDropdown()
+
+
+		relocateLeftSide()
+		relocateLeftSide()
+		updateDisplayBackground()
+		updateGeneralBackground()
+		updateConditionBackground()
+		updateEventBackground()
 	end,"Create",nil,true)
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (GROUP MEMBER) ----------------
 
@@ -1326,14 +1346,15 @@ function HT_Settings_initializeUI()
 			HT_adjustDataForNewestVersion({importedTable})
 			HTSV.trackers[importedTable.name] = importedTable
 			initializeTrackerFunctions[importedTable.type](HT_Trackers,importedTable)
-			relocateLeftSide()   
-			updateDisplayBackground()
-			updateGeneralBackground()
-			updateConditionBackground()
-			updateEventBackground()
+
 		end
 		nameEditbox:SetText("")
-
+		relocateLeftSide()
+		relocateLeftSide()
+		updateDisplayBackground()
+		updateGeneralBackground()
+		updateConditionBackground()
+		updateEventBackground()
 	end,"Create",nil,true)
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (IMPORT) ----------------
 
