@@ -3,6 +3,7 @@ HT = {
     author = "Hyperioxes",
     color = "DDFFEE",
     menuName = "HyperTools",
+    version = "0.8b",
     expiresAt = {},
     duration = {},
     stacks = {},
@@ -45,7 +46,7 @@ function HT_adjustDataForNewestVersion(data)
             t.load.always = false
         end
 
-        for k, v in pairs(t.children) do
+        for _, v in pairs(t.children) do
             searchThroughTable(v)
         end
     end
@@ -57,7 +58,7 @@ function HT_adjustDataForNewestVersion(data)
 
 end
 
-function OnAddOnLoaded(event, addonName)
+function OnAddOnLoaded(_, addonName)
     if addonName ~= HT.name then
         return
     end
@@ -74,7 +75,37 @@ function OnAddOnLoaded(event, addonName)
     HT_Settings_initializeUI()
     HT_Initialize3D()
     HT_InitializeGlobalControl()
-    --HT_registerEvents()
+
+    --To improve performance, the "check" if tracker should be turned on happens on certain events (skill changed,
+    --equipment changed, zone changed, boss changed) instead of every 100ms
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_SKILL_RESPEC_RESULT, function() --check when skill changed
+        for _, v in pairs(HTSV.trackers) do
+            if v.name ~= 'none' then
+                HT_findContainer(v):Update(v)
+            end
+        end
+    end)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function() --check when skill changed
+        for _, v in pairs(HTSV.trackers) do
+            if v.name ~= 'none' then
+                HT_findContainer(v):Update(v)
+            end
+        end
+    end)
+    CALLBACK_MANAGER:RegisterCallback("OnWorldMapChanged", function() -- check when map changed
+        for _, v in pairs(HTSV.trackers) do
+            if v.name ~= 'none' then
+                HT_findContainer(v):Update(v)
+            end
+        end
+    end)
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_BOSSES_CHANGED, function() --check when boss changed
+        for _, v in pairs(HTSV.trackers) do
+            if v.name ~= 'none' then
+                HT_findContainer(v):Update(v)
+            end
+        end
+    end)
 
 end
 

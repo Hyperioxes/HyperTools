@@ -69,7 +69,7 @@ trackerUpdateFunctions = {
             stacksCount = 0
         end
         timer:SetColor(unpack(tracker.color))
-        timer:SetText(getDecimals(remainingTime, v.decimals))
+        timer:SetText(HT_getDecimals(remainingTime, v.decimals))
         stacks:SetColor(unpack(tracker.color))
         stacks:SetText(stacksCount)
     end,
@@ -92,7 +92,7 @@ trackerUpdateFunctions = {
             bar:SetDimensions(barX * (remainingTime / duration), barY)
         end
         bar:SetColor(unpack(tracker.color))
-        timer:SetText(getDecimals(remainingTime, v.decimals))
+        timer:SetText(HT_getDecimals(remainingTime, v.decimals))
         label:SetText(tracker.text)
         stacks:SetText(stacksCount)
     end,

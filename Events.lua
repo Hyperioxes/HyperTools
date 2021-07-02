@@ -38,8 +38,8 @@ local eventFunctions = {
         end
     end,
     ["Get Effect Cooldown"] = function(name, ID, tracker, arguments)
-        EVENT_MANAGER:RegisterForEvent(name, EVENT_COMBAT_EVENT, function(eventCode, result, isError, abilityName, abilityGraphic,
-                                                                          abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId)
+        EVENT_MANAGER:RegisterForEvent(name, EVENT_COMBAT_EVENT, function(_, result, _, _, _,
+                                                                          _, sourceName, _, _, _, hitValue, _, _, _, _, _, _)
             if not arguments.dontUpdateFromThisEvent then
                 tracker.duration[GetUnitName("player")] = arguments.cooldown
                 tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
@@ -61,7 +61,7 @@ local eventFunctions = {
             EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, 1)
         end
     end,
-    ["Entering/Exiting Combat"] = function(name, ID, tracker, arguments)
+    ["Entering/Exiting Combat"] = function(name, _, tracker, arguments)
         EVENT_MANAGER:RegisterForEvent(name, EVENT_PLAYER_COMBAT_STATE, function(_, inCombat)
             if arguments.luaCodeToExecute then
                 hyperToolsTracker = tracker

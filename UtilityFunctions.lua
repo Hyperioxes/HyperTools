@@ -1,4 +1,4 @@
-function getDecimals(time, number)
+function HT_getDecimals(time, number)
     time = math.floor(time * (10 ^ number)) / (10 ^ number)
     local counter = 0
     for i = 1, number do
@@ -15,7 +15,17 @@ function getDecimals(time, number)
     return time
 end
 
-function getTrackerFromName(name, table)
+function HT_removeElementFromTable(table, element)
+    for k,v in pairs(table) do
+        if v==element then
+            table[k] = nil
+            return
+        end
+    end
+end
+
+
+function HT_getTrackerFromName(name, table)
     if name == "HT_Trackers" then
         return HTSV.trackers
     end
@@ -23,27 +33,29 @@ function getTrackerFromName(name, table)
         if k == name then
             return v
         end
-        if getTrackerFromName(name, v.children) then
-            return getTrackerFromName(name, v.children)
+        if HT_getTrackerFromName(name, v.children) then
+            return HT_getTrackerFromName(name, v.children)
         end
     end
 end
 
 function HT_findContainer(tracker, i)
-
+    if tracker.name == 'none' then
+        return nil
+    end
     if tracker == HTSV.trackers then
         return HT_Trackers
     end
     if tracker.type == "Group Member" and i then
-        return HT_findContainer(getTrackerFromName(tracker.parent, HTSV.trackers), i):GetNamedChild(tracker.name .. "_Group" .. i)
+        return HT_findContainer(HT_getTrackerFromName(tracker.parent, HTSV.trackers), i):GetNamedChild(tracker.name .. "_Group" .. i)
     else
-        return HT_findContainer(getTrackerFromName(tracker.parent, HTSV.trackers), i):GetNamedChild(tracker.name .. "_" .. tracker.type)
+        return HT_findContainer(HT_getTrackerFromName(tracker.parent, HTSV.trackers), i):GetNamedChild(tracker.name .. "_" .. tracker.type)
     end
 end
 
 function HT_changeLock(t, setTo)
     if t.name ~= 'none' then
-        if t.parent ~= "HT_Trackers" and getTrackerFromName(t.parent, HTSV.trackers).type == "Group Member" then
+        if t.parent ~= "HT_Trackers" and HT_getTrackerFromName(t.parent, HTSV.trackers).type == "Group Member" then
             for i = 1, 12 do
                 HT_findContainer(t, i):SetMovable(setTo)
             end
@@ -51,7 +63,7 @@ function HT_changeLock(t, setTo)
             HT_findContainer(t):SetMovable(setTo)
         end
     end
-    for k, v in pairs(t.children) do
+    for _, v in pairs(t.children) do
         HT_changeLock(v, setTo)
     end
 end
@@ -172,7 +184,7 @@ end
 
 function HT_generateNewName(name, number)
     local newName = name .. "(" .. number .. ")"
-    if getTrackerFromName(newName, HTSV.trackers) then
+    if HT_getTrackerFromName(newName, HTSV.trackers) then
         return HT_generateNewName(name, number + 1)
     end
     return newName
@@ -191,7 +203,7 @@ function HT_getIdsFromAllEvents(tracker)
 end
 
 function HT_checkIfElementIsInsideTable(table, element)
-    for k, v in pairs(table) do
+    for _, v in pairs(table) do
         if element == v then
             return true
         end
@@ -216,7 +228,7 @@ function HT_nullify(t)
         end
     end
 
-    for k, v in pairs(t.children) do
+    for _, v in pairs(t.children) do
         HT_nullify(v)
     end
 end
@@ -225,8 +237,8 @@ function HT_GetDistance(unit1, unit2)
     if not DoesUnitExist(unit1) or not DoesUnitExist(unit2) then
         return -1
     end
-    local zone1, x1, y1, z1 = GetUnitWorldPosition(unit1)
-    local zone2, x2, y2, z2 = GetUnitWorldPosition(unit2)
+    local zone1, x1, _, z1 = GetUnitWorldPosition(unit1)
+    local zone2, x2, _, z2 = GetUnitWorldPosition(unit2)
     if zone1 ~= zone2 then
         return -1
     else

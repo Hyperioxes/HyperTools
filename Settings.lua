@@ -1,5 +1,4 @@
 local WM = GetWindowManager()
-local version = "0.8b"
 
 local importEditboxUpdated = false
 
@@ -22,38 +21,19 @@ local fonts = {
 }
 
 local fontWeights = {
-	"","soft-shadow-thick","soft-shadow-thin","thick-outline","shadow",
+	"soft-shadow-thick","soft-shadow-thin","thick-outline","shadow",
 }
 
 local fontSizes = {
 	8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,28,30,32,34,36,40,48,54
 }
 
-local alignments = {
-	["LEFT"] = 0,
-	["CENTER"] = 1,
-	["RIGHT"] = 2,
-}
-
 HT_settingsVisible = false
-
-local function findFreeSlotInTable(table)
-	for i=1, 1000 do
-		if table[i] == nil then
-			return i
-		end
-	end
-end
-
-
-
 
 local getTargetNumberChoices = {
 	["Group"] = {1,2,3,4,5,6,7,8,9,10,11,12},
 	["Boss"] = {1,2,3,4,5,6}
 }
-
-
 
 local function GetAbilityIdFromName(name)
 	for i=1,200000 do
@@ -65,14 +45,7 @@ local function GetAbilityIdFromName(name)
 	return 0
 end
 
-local function removeElementFromTable(table,element)
-	for k,v in pairs(table) do
-		if v==element then
-			table[k] = nil
-			return
-		end
-	end
-end
+
 
 local function getChildrenFromName(name,table)
 	if name == "HT_Trackers" then return HTSV.trackers end
@@ -82,16 +55,18 @@ local function getChildrenFromName(name,table)
 	end
 end
 
-
-
 function changeTrackerName(fromName,toName)
-	local tracker = getTrackerFromName(fromName,HTSV.trackers)
-	if tracker.parent ~= "HT_Trackers" and getTrackerFromName(tracker.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers)):Delete() else HT_findContainer(tracker):Delete() end
+	local tracker = HT_getTrackerFromName(fromName,HTSV.trackers)
 
-	--if tracker.parent ~= "HT_Trackers" and getTrackerFromName(tracker.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(tracker):UnregisterEvents() end
+	if tracker.parent ~= "HT_Trackers" and HT_getTrackerFromName(tracker.parent,HTSV.trackers).type == "Group Member" then
+		HT_findContainer(HT_getTrackerFromName(tracker.parent,HTSV.trackers)):Delete()
+	else
+		HT_findContainer(tracker):Delete()
+	end
+
 	local parentName = tracker.parent
 	local holdCopy = HT_deepcopy(tracker)
-	for k,v in pairs(holdCopy.children) do
+	for _,v in pairs(holdCopy.children) do
 		v.parent = toName
 	end
 	holdCopy.name = toName
@@ -99,17 +74,17 @@ function changeTrackerName(fromName,toName)
 	HT_Settings:GetNamedChild("background"):GetNamedChild("eTB"):GetNamedChild("button"..tracker.parent..tracker.name):SetHidden(true)
 	getChildrenFromName(parentName,HTSV.trackers)[tracker.name] = nil
 		
-	tracker = getTrackerFromName(toName,HTSV.trackers)
+	tracker = HT_getTrackerFromName(toName,HTSV.trackers)
 
-	initializeTrackerFunctions[tracker.type](HT_findContainer(getTrackerFromName(tracker.parent,HTSV.trackers)),holdCopy)
+	initializeTrackerFunctions[tracker.type](HT_findContainer(HT_getTrackerFromName(tracker.parent,HTSV.trackers)),holdCopy)
 	
 end
 
 function removeDuplicateNamesFromImportedTable(importTable,parentTable)
-	if getTrackerFromName(importTable.name,HTSV.trackers) then
+	if HT_getTrackerFromName(importTable.name,HTSV.trackers) then
 		changeUninitializedTrackerName(HT_generateNewName(importTable.name,1),importTable,parentTable)
 	end
-	for k,v in pairs(importTable.children) do
+	for _,v in pairs(importTable.children) do
 		removeDuplicateNamesFromImportedTable(v,importTable)
 	end
 
@@ -117,8 +92,7 @@ end
 
 function changeUninitializedTrackerName(toName,tracker,parent)
 	local oldName =  tracker.name
-	local parentName = tracker.parent
-	for k,v in pairs(tracker.children) do
+	for _,v in pairs(tracker.children) do
 		v.parent = toName
 	end
 	tracker.name = toName
@@ -132,41 +106,35 @@ end
 local function deleteTrackerFromName(name,table)
 	for k,v in pairs(table) do
 		if v.name == name then table[k] = nil end
-		for k1,v1 in pairs(v.children) do
+		for _,v1 in pairs(v.children) do
 			deleteTrackerFromName(name,v1)
 		end
 	end
 end
 
-
 local function getKeysFromTable(varTable)
 	local holder = {}
-	for k,v in pairs(varTable) do
+	for k,_ in pairs(varTable) do
 		table.insert(holder,k)
 	end
 	return holder
 end
 
-
-
 local function hideUI()
 	HT_Settings:SetHidden(true)
 	HT_settingsVisible = false
 
-	for k,v in pairs(HTSV.trackers) do
+	for _,v in pairs(HTSV.trackers) do
 		HT_changeLock(v,false)
 	end
 
 end
 
-
-
-
 local function showUI()
 	HT_Settings:SetHidden(false)
 	HT_settingsVisible = true
 
-	for k,v in pairs(HTSV.trackers) do
+	for _,v in pairs(HTSV.trackers) do
 		HT_changeLock(v,true)
 	end
 end
@@ -180,34 +148,28 @@ function HT_toggleUI()
 	end
 end
 
-
 SLASH_COMMANDS["/hthide"] = hideUI
 SLASH_COMMANDS["/htshow"] = showUI
-
-
 
 CST = nil -- Currently Selected Tracker
 local CSE = 1 -- Currently Selected Event
 local CSC = 1 -- Currently Selected Condition
 local CTC = "HT_Trackers"-- Current Top Control
-local CMT = nil -- Currently Moved Tracker
 local page = 1
 local maxPage = 1
 
 function deleteTracker(t)
-
-	if t.parent ~= "HT_Trackers" and getTrackerFromName(t.parent,HTSV.trackers).type == "Group Member" then 
+	if t.parent ~= "HT_Trackers" and HT_getTrackerFromName(t.parent,HTSV.trackers).type == "Group Member" then
 		for i=1,12 do
 			HT_findContainer(t,i):Delete() 
 		end
 	else 
 		HT_findContainer(t):Delete() 
 	end
+
 	getChildrenFromName(CTC,HTSV.trackers)[t.name] = nil
 	CST = HTSV.trackers["none"]
-	CSC = HT_pickAnyKey(CST.conditions)	
-
-
+	CSC = HT_pickAnyKey(CST.conditions)
 end
 
 
@@ -322,13 +284,9 @@ local function updateDisplayBackground()
 	colorpicker3:SetColor(unpack(CST.backgroundColor))
 	TextPosXEditbox:SetText(math.floor(CST.xOffset))
 	cstYposEditbox:SetText(math.floor(CST.yOffset))
-	--if CST.type == "Icon Tracker" then
-	--	outlineThicknessDropdown:SetHidden(true)
-	--else
-		outlineThicknessDropdown:SetHidden(false)
-		outlineThicknessDropdown.selection = CST.outlineThickness
-		outlineThicknessDropdown:updateDropdown()
-	--end
+	outlineThicknessDropdown:SetHidden(false)
+	outlineThicknessDropdown.selection = CST.outlineThickness
+	outlineThicknessDropdown:updateDropdown()
 	inverseCheckbox:Update(CST.inverse)
 	remainingTimeCheckbox:Update(CST.timer1)
 	stacksCheckbox:Update(CST.timer2)
@@ -346,7 +304,6 @@ local function updateGeneralBackground()
 	local generalBackground = selectedTrackerSettingsBackdrop:GetNamedChild("generalBackground")
 	local name = generalBackground:GetNamedChild("NameEditbox")
 	local targetDropdown = generalBackground:GetNamedChild("TargetDropdown")
-	
 	local TargetNumberDropdown = generalBackground:GetNamedChild("TargetNumberDropdown")
 	local neverCheckbox = generalBackground:GetNamedChild("neverCheckbox")
 	local combatCheckbox = generalBackground:GetNamedChild("combatCheckbox")
@@ -357,6 +314,7 @@ local function updateGeneralBackground()
 	local zoneDropdown = generalBackground:GetNamedChild("zoneDropdown")
 	local bossDropdown = generalBackground:GetNamedChild("bossDropdown")
 	local alwaysCheckbox = generalBackground:GetNamedChild("alwaysCheckbox")
+
 	neverCheckbox:Update(CST.load.never)
 	alwaysCheckbox:Update(CST.load.always)
 	combatCheckbox:Update(CST.load.inCombat)
@@ -385,7 +343,7 @@ local function updateGeneralBackground()
 
 	name:SetText(CST.name)
 
-	if CST.type == "Group Member" or (CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member") then
+	if CST.type == "Group Member" or (CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member") then
 		targetDropdown:SetHidden(true)
 		TargetNumberDropdown:SetHidden(true)
 	else
@@ -401,12 +359,6 @@ local function updateGeneralBackground()
 			TargetNumberDropdown:updateDropdown()
 		end
 	end
-
-	
-
-
-
-	
 end
 
 local function updateConditionBackground()
@@ -499,23 +451,16 @@ end
 
 local function createLeftSidePanelButton(parent,counter,t)
 	if t.name ~= "none" then
-		local tracker = getTrackerFromName(t.name,HTSV.trackers)
-		local button = createButton(parent,"button"..tracker.parent..tracker.name,200,50,0,50*counter,TOPLEFT,TOPLEFT,function(ctrl,alt,shift) 
+		local tracker = HT_getTrackerFromName(t.name,HTSV.trackers)
+		local button = createButton(parent,"button"..tracker.parent..tracker.name,200,50,0,50*counter,TOPLEFT,TOPLEFT,function(ctrl,_,shift)
 			if (tracker.type == "Group" or tracker.type == "Group Member") and ctrl and tracker ~= CST then
 				local holdCopy = HT_deepcopy(CST)
 				local buttonToRemove = parent:GetNamedChild("button"..CST.parent..CST.name)
 				buttonToRemove:SetHidden(true)
 				holdCopy.parent = tracker.name
-				
-				
 				deleteTracker(CST)
-				
-
-
 				holdCopy.xOffset = holdCopy.xOffset - tracker.xOffset
 				holdCopy.yOffset = holdCopy.yOffset - tracker.yOffset
-				
-
 				tracker.children[holdCopy.name] = holdCopy
 				if tracker.type ~= "Group Member" then
 					initializeTrackerFunctions[holdCopy.type](HT_findContainer(tracker),holdCopy)
@@ -525,13 +470,12 @@ local function createLeftSidePanelButton(parent,counter,t)
 				local holdCopy = HT_deepcopy(tracker)
 				holdCopy.name = newName
 				getChildrenFromName(tracker.parent,HTSV.trackers)[newName] = holdCopy
-				if getTrackerFromName(holdCopy.parent,HTSV.trackers).type ~= "Group Member" then
+				if HT_getTrackerFromName(holdCopy.parent,HTSV.trackers).type ~= "Group Member" then
 					initializeTrackerFunctions[holdCopy.type](HT_findContainer(tracker),holdCopy)
 				end
 			end
-			
 			selectRightSideBackground(1)
-			CST = getTrackerFromName(t.name,HTSV.trackers)
+			CST = HT_getTrackerFromName(t.name,HTSV.trackers)
 			CSC = HT_pickAnyKey(tracker.conditions)
 			selectCurrentlyEditedBackground(11)
 			relocateLeftSide()
@@ -540,10 +484,8 @@ local function createLeftSidePanelButton(parent,counter,t)
 			updateConditionBackground()
 			updateEventBackground()
 		end,nil,nil,true)
-		local deleteButton = createButton(button,"deleteButton",23,23,-2,2,TOPRIGHT,TOPRIGHT,function()
-			
+		createButton(button,"deleteButton",23,23,-2,2,TOPRIGHT,TOPRIGHT,function()
 			deleteTracker(tracker)
-
 			relocateLeftSide()
 			updateDisplayBackground()
 			updateGeneralBackground()
@@ -551,34 +493,24 @@ local function createLeftSidePanelButton(parent,counter,t)
 			updateEventBackground()
 			button:SetHidden(true)
 		end,nil,"/esoui/art/buttons/decline_up.dds",true)
-		
 		local moveButton = createButton(button,"moveButton",23,23,-23,2,TOPRIGHT,TOPRIGHT,function()
 			local holdCopy = HT_deepcopy(tracker)
-			holdCopy.parent = getTrackerFromName(getTrackerFromName(t.name,HTSV.trackers).parent,HTSV.trackers).parent
-			
-			
-			
-			
-
+			holdCopy.parent = HT_getTrackerFromName(HT_getTrackerFromName(t.name,HTSV.trackers).parent,HTSV.trackers).parent
 			deleteTracker(tracker)
-			--holdCopy.xOffset = holdCopy.xOffset - getTrackerFromName(holdCopy.parent,HTSV.trackers).xOffset
-			--holdCopy.yOffset = holdCopy.yOffset - getTrackerFromName(holdCopy.parent,HTSV.trackers).yOffset
 			getChildrenFromName(holdCopy.parent,HTSV.trackers)[holdCopy.name] = holdCopy
-			initializeTrackerFunctions[holdCopy.type](HT_findContainer(getTrackerFromName(holdCopy.parent,HTSV.trackers)),holdCopy)
-
+			initializeTrackerFunctions[holdCopy.type](HT_findContainer(HT_getTrackerFromName(holdCopy.parent,HTSV.trackers)),holdCopy)
 			button:SetHidden(true)
 			relocateLeftSide()
 			updateDisplayBackground()
 			updateGeneralBackground()
 			updateConditionBackground()
 			updateEventBackground()
-
 		end,nil,"/esoui/art/buttons/scrollbox_uparrow_up.dds",true)
 		if tracker.parent == "HT_Trackers" then
 			moveButton:SetHidden(true)
 		end
 		if tracker.type == "Group" or tracker.type == "Group Member" then
-			local goInsideButton = createButton(button,"goInsideButton",23,23,-2,-2,BOTTOMRIGHT,BOTTOMRIGHT,function()
+			createButton(button,"goInsideButton",23,23,-2,-2,BOTTOMRIGHT,BOTTOMRIGHT,function()
 				CTC = tracker.name
 				relocateLeftSide()
 				updateDisplayBackground()
@@ -588,14 +520,10 @@ local function createLeftSidePanelButton(parent,counter,t)
 			end,nil,"/esoui/art/buttons/scrollbox_downarrow_up.dds",true)
 		end
 		local icon = createTexture(button,"icon",50,50,1,1,TOPLEFT,TOPLEFT,tracker.icon,4)
-		local text = createLabel(icon,"text",125,25,0,0,TOPLEFT,TOPRIGHT,tracker.name,1,1)
-		local type = createLabel(icon,"type",125,25,0,0,BOTTOMLEFT,BOTTOMRIGHT,tracker.type,1,1)
+		createLabel(icon,"text",125,25,0,0,TOPLEFT,TOPRIGHT,tracker.name,1,1)
+		createLabel(icon,"type",125,25,0,0,BOTTOMLEFT,BOTTOMRIGHT,tracker.type,1,1)
 	end
 end
-
-
-
-
 
 function relocateLeftSide()
 	local background = HT_Settings:GetNamedChild("background")
@@ -609,26 +537,20 @@ function relocateLeftSide()
 	else
 		returnButton:SetHidden(false)
 	end
-
 	local tableOfChildren = getChildrenFromName(CTC,HTSV.trackers) or {}
-
-
 	local function hideAllButtons(tracker)
 		if eTB:GetNamedChild("button"..tracker.parent..tracker.name) then
 			eTB:GetNamedChild("button"..tracker.parent..tracker.name):SetHidden(true)
 		end
-		for k1,v1 in pairs(tracker.children) do
+		for _,v1 in pairs(tracker.children) do
 			hideAllButtons(v1)
 		end
 	end
-
-	for k,v in pairs(HTSV.trackers) do -- hide all buttons
+	for _,v in pairs(HTSV.trackers) do -- hide all buttons
 		hideAllButtons(v)
 	end
-	--local page = pageNumber or 1
 	local moreThan =12*(page-1)
 	local lessThan = moreThan + 11
-
 	for k,v in pairs(tableOfChildren) do -- show buttons of current top control
 		if not eTB:GetNamedChild("button"..v.parent..k) then
 			createLeftSidePanelButton(eTB,offset,v)
@@ -674,18 +596,15 @@ function relocateLeftSide()
 	pageCounter:SetText(page.."/"..maxPage)
 end
 
-
-
-
 local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targetNumber,event)
-	local backroundColorDefault = {0,0,0,0.4}
+	local backgroundColorDefault = { 0, 0, 0, 0.4}
 	local outlineColorDefault = {0,0,0,1}
 	if type == 'Group' or type == 'Group Member' then
-		backroundColorDefault = {0,0,0,0}
+		backgroundColorDefault = { 0, 0, 0, 0}
 		outlineColorDefault = {0,0,0,0}
 	end
 		
-	if getTrackerFromName(name, HTSV.trackers) then
+	if HT_getTrackerFromName(name, HTSV.trackers) then
 		name = HT_generateNewName(name,1)
 	end
 	HTSV.trackers[name] = {
@@ -708,7 +627,7 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 	anchorToGroupMember = true,
 	barColor = color,
 	timeColor = {1,1,1,1},
-	backgroundColor = backroundColorDefault,
+	backgroundColor = backgroundColorDefault,
 	outlineColor = outlineColorDefault,
 	textColor= {1,1,1,1},
 	stacksColor = {1,1,1,1},
@@ -723,9 +642,7 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 	timer1 = true,
 	timer2 = true,
 	inverse = false,
-	conditions = {
-		
-	},
+	conditions = {},
 	duration = {},
 	expiresAt = {},
 	stacks = {},
@@ -753,7 +670,12 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 		bosses = {},
 		always = false,
 	},
+
 	}
+
+
+
+
 	initializeTrackerFunctions[type](HT_Trackers,HTSV.trackers[name])
 end
 
@@ -770,12 +692,7 @@ local function onSceneChange(_,scene)
 	end
 end
 
-
-
-
 function HT_Settings_initializeUI()
-
-
 	 ESO_Dialogs["HT_Export"] = {
 		canQueue = true,
 		uniqueIdentifier = "HT_Export",
@@ -792,7 +709,6 @@ function HT_Settings_initializeUI()
 			end 
 		end,
 		buttons = {
-
 		  [1] = {
 			text = "Close",
 			callback = function() end,
@@ -800,10 +716,6 @@ function HT_Settings_initializeUI()
 		},
 		setup = function()end,
   }
-
-
-
-
 
 	local HT_Settings = WM:CreateTopLevelWindow("HT_Settings")
 	HT_Settings:SetResizeToFitDescendents(true)
@@ -815,12 +727,12 @@ function HT_Settings_initializeUI()
 	CST = HTSV.trackers["none"] -- Currently Selected Tracker
 
 	local background = createBackground(HT_Settings,"background",800,825,0,0,TOPLEFT,TOPLEFT)
-	local versionLabel = createLabel(background,'versionLabel',100,30,0,0,BOTTOMLEFT,BOTTOMLEFT,'Hyper Tools '..version)
-	local exitButton = createButton(background,"exitButton",25,25,0,0,TOPRIGHT,TOPRIGHT,function() hideUI() end,nil,"/esoui/art/buttons/decline_up.dds",true)
+	createLabel(background,'versionLabel',100,30,0,0,BOTTOMLEFT,BOTTOMLEFT,'Hyper Tools '..HT.version)
+	createButton(background,"exitButton",25,25,0,0,TOPRIGHT,TOPRIGHT,function() hideUI() end,nil,"/esoui/art/buttons/decline_up.dds",true)
 	------ BACKGROUND ON THE LEFT WITH ALL EXISTING TRACKERS ----------------
 	local eTB = createBackground(background,"eTB",200,775,25,25,TOPLEFT,TOPLEFT) -- existing trackers background
 	
-	local button = createButton(eTB,"button",200,50,0,0,TOPLEFT,TOPLEFT,function() 
+	createButton(eTB,"button",200,50,0,0,TOPLEFT,TOPLEFT,function()
 		selectRightSideBackground(0)
 		relocateLeftSide() 
 		updateDisplayBackground()
@@ -829,9 +741,9 @@ function HT_Settings_initializeUI()
 		updateEventBackground()
 	end,nil,nil,true)
 	local buttonIcon = createTexture(eTB,"buttonIcon",50,50,0,0,TOPLEFT,TOPLEFT,"HyperTools/icons/plusIcon.dds",2)
-	local text = createLabel(buttonIcon,"text",150,50,0,0,LEFT,RIGHT,"Create new",1,1)
+	createLabel(buttonIcon,"text",150,50,0,0,LEFT,RIGHT,"Create new",1,1)
 	local returnButton = createButton(eTB,"returnButton",200,50,0,50,TOPLEFT,TOPLEFT,function() 
-		CTC = getTrackerFromName(CTC,HTSV.trackers).parent
+		CTC = HT_getTrackerFromName(CTC,HTSV.trackers).parent
 		relocateLeftSide() 
 		updateDisplayBackground()
 		updateGeneralBackground()
@@ -897,12 +809,10 @@ function HT_Settings_initializeUI()
 			relocateLeftSide()
 			updateDisplayBackground()
 		end,nil,nil,true)
-		local title = createLabel(button,"title"..i,425,50,0,0,TOP,TOP,typesByNumber[i],1,1,"BOLD_FONT",26)
-		local text = createLabel(button,"text"..i,425,50,0,0,BOTTOM,BOTTOM,textsByNumber[i],1,1,nil,nil)
+		createLabel(button,"title"..i,425,50,0,0,TOP,TOP,typesByNumber[i],1,1,"BOLD_FONT",26)
+		createLabel(button,"text"..i,425,50,0,0,BOTTOM,BOTTOM,textsByNumber[i],1,1,nil,nil)
 	end
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS ----------------
-
-
 
 
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (PROGRESS BAR) ----------------
@@ -913,92 +823,52 @@ function HT_Settings_initializeUI()
 	createLabel(newProgressBarBackdrop,"generalLabel",150,30,180,10,TOPLEFT,TOPLEFT,"CREATE NEW PROGRESS BAR",1,1,"BOLD_FONT",26)
 	createTexture(newProgressBarBackdrop,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(newProgressBarBackdrop,"name",150,30,15,60,TOPLEFT,TOPLEFT,"Name",0,1)
-	local nameEditbox = createEditbox(newProgressBarBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
-
-	end)
-	local IDsDropdown = createDropdown(newProgressBarBackdrop,"IDs dropdown",175,32,15,195,TOPLEFT,TOPLEFT,{},nil,function(selection)
-	end)
-	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30, 0,0,BOTTOM,TOP,function(editbox)
-
-	end)
-	createLabel(editbox,"IdsLabel",175,0,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
-
-	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
-		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
-		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
-		IDsDropdown:updateDropdown()
+	local nameEditboxPB = createEditbox(newProgressBarBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(_) end)
+	local iDDropdownPB = createDropdown(newProgressBarBackdrop,"IDs dropdown",175,32,15,195,TOPLEFT,TOPLEFT,{},nil,function(_) end)
+	local idEditboxPB = createEditbox(iDDropdownPB,"addIdEditbox",175,30, 0,0,BOTTOM,TOP,function(_) end,nil,nil,"Ids")
+	createButton(iDDropdownPB,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
+		HT_removeElementFromTable(iDDropdownPB.choices,iDDropdownPB.selection)
+		iDDropdownPB.selection = HT_pickAnyElement(iDDropdownPB.choices)
+		iDDropdownPB:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
-	createButton(editbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
-
-		table.insert(IDsDropdown.choices,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
-		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
-		IDsDropdown:updateDropdown()
+	createButton(idEditboxPB,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
+		table.insert(iDDropdownPB.choices,(tonumber(idEditboxPB:GetText()) or GetAbilityIdFromName(idEditboxPB:GetText())))
+		iDDropdownPB.selection = HT_pickAnyElement(iDDropdownPB.choices)
+		iDDropdownPB:updateDropdown()
 	end,nil,"/esoui/art/buttons/plus_up.dds",nil)
-
-
-
-
-	local TargetNumberDropdown = createDropdown(newProgressBarBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(selection)
-
-	end)
-	createLabel(TargetNumberDropdown,"TargetNumber",50,30,0,0,BOTTOMLEFT,TOPLEFT,"Number",0,1)
-	
-	local dropdown = createDropdown(newProgressBarBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
+	local targetNumberDropdownPB = createDropdown(newProgressBarBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(_) end,"Number")
+	local targetDropdownPB = createDropdown(newProgressBarBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
 		if selection == "Yourself" or selection == "Current Target" then
-			TargetNumberDropdown:SetHidden(true)
+			targetNumberDropdownPB:SetHidden(true)
 		else
-			TargetNumberDropdown:SetHidden(false)
-			TargetNumberDropdown.choices = getTargetNumberChoices[selection] or {1}
-			TargetNumberDropdown:updateDropdown()
+			targetNumberDropdownPB:SetHidden(false)
+			targetNumberDropdownPB.choices = getTargetNumberChoices[selection] or {1}
+			targetNumberDropdownPB:updateDropdown()
 		end
-	end)
-	createLabel(dropdown,"Target",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Target",0,1)
-	
-	local dropdown2 = createDropdown(newProgressBarBackdrop,"dropdown2",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(selection)
-
-	end)
-	createLabel(dropdown2,"a",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Type",0,1)
-
-	
-	createLabel(newProgressBarBackdrop,"colorpickerText",150,30,15,500,TOPLEFT,TOPLEFT,"Color",0,1)
-	local colorpicker = createColorpicker(newProgressBarBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(color) 
-		
-	end)
+	end,"Target")
+	local typeDropdownPB = createDropdown(newProgressBarBackdrop,"typeDropdownPB",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(_) end,"Type")
+	local colorpickerPB = createColorpicker(newProgressBarBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(_) end,"Color")
 	createTexture(newProgressBarBackdrop,"edge3",475,2,15,400,TOPLEFT,TOPLEFT,"")
-	
-	createLabel(newProgressBarBackdrop,"TextSizeX",150,30,15,440,TOPLEFT,TOPLEFT,"Width",0)
-	local widthEditbox = createEditbox(newProgressBarBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(editbox)
+	local widthEditboxPB = createEditbox(newProgressBarBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(_) end,210,nil,"Width")
+	local heightEditboxPB = createEditbox(newProgressBarBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(_) end,30,nil,"Height")
+	local textEditboxPB = createEditbox(newProgressBarBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(_) end,nil,nil,"Text")
+	createButton(newProgressBarBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
+		createNewTracker("Progress Bar",nameEditboxPB:GetText(),textEditboxPB:GetText(),iDDropdownPB.choices,tonumber(widthEditboxPB:GetText()),tonumber(heightEditboxPB:GetText()),colorpickerPB.color,targetDropdownPB.selection,targetNumberDropdownPB.selection,typeDropdownPB.selection)
 
-	end,210)
-	createLabel(newProgressBarBackdrop,"TextSizeY",150,30,250,440,TOPLEFT,TOPLEFT,"Height",0)
-	local heightEditbox = createEditbox(newProgressBarBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(editbox)
-
-	end,30)
-
-	createLabel(newProgressBarBackdrop,"textLabel",150,30,250,500,TOPLEFT,TOPLEFT,"Text",0,1)
-	local textEditbox = createEditbox(newProgressBarBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(editbox)
-		
-	end)
-
-	local buttonCreateTracker = createButton(newProgressBarBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
-		createNewTracker("Progress Bar",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
-
-		
-		nameEditbox:SetText("")
-		textEditbox:SetText("")
-		IDsDropdown.choices = {}
-		IDsDropdown.selection = nil
-		IDsDropdown:updateDropdown()
-		widthEditbox:SetText(210)
-		heightEditbox:SetText(30)
-		colorpicker:SetColor(1,1,1,1)
-		dropdown.selection = "Yourself"
-		dropdown:updateDropdown()
-		TargetNumberDropdown.selection = 1
-		TargetNumberDropdown:updateDropdown()
-		dropdown2.selection = "Get Effect Duration"
-		dropdown2:updateDropdown()
-
+		nameEditboxPB:SetText("")
+		textEditboxPB:SetText("")
+		iDDropdownPB.choices = {}
+		iDDropdownPB.selection = nil
+		iDDropdownPB:updateDropdown()
+		widthEditboxPB:SetText(210)
+		heightEditboxPB:SetText(30)
+		colorpickerPB:SetColor(1,1,1,1)
+		targetDropdownPB.selection = "Yourself"
+		targetDropdownPB:updateDropdown()
+		targetNumberDropdownPB.selection = 1
+		targetNumberDropdownPB:updateDropdown()
+		typeDropdownPB.selection = "Get Effect Duration"
+		typeDropdownPB:updateDropdown()
 
 		updateDisplayBackground()
 		updateGeneralBackground()
@@ -1006,29 +876,31 @@ function HT_Settings_initializeUI()
 		updateEventBackground()
 		relocateLeftSide()
 		relocateLeftSide()
-
 	end,"Create",nil,true)
+
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (PROGRESS BAR) ----------------
+
 	------ BACKGROUND ON THE RIGHT WHERE U CREATE NEW TRACKERS (ICON TRACKER) ----------------
+
 	local newIconTrackerBackdrop = createBackground(background,"newIconTrackerBackdrop",525,775,250,25,TOPLEFT,TOPLEFT)
 	newIconTrackerBackdrop:SetHidden(true)
 	createTexture(newIconTrackerBackdrop,"edge1",165,2,15,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(newIconTrackerBackdrop,"generalLabel",150,30,180,10,TOPLEFT,TOPLEFT,"CREATE NEW PROGRESS BAR",1,1,"BOLD_FONT",26)
 	createTexture(newIconTrackerBackdrop,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(newIconTrackerBackdrop,"name",150,30,15,60,TOPLEFT,TOPLEFT,"Name",0,1)
-	local nameEditbox = createEditbox(newIconTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
+	nameEditbox = createEditbox(newIconTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(_)
 
 	end)
-	local IDsDropdown = createDropdown(newIconTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(selection)
+	IDsDropdown = createDropdown(newIconTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(_)
 
 	end)
-	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
+	editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(_)
 
 	end)
 	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
 
 	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
-		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
+		HT_removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
 		IDsDropdown:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
@@ -1042,12 +914,12 @@ function HT_Settings_initializeUI()
 
 
 
-	local TargetNumberDropdown = createDropdown(newIconTrackerBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(selection)
+	TargetNumberDropdown = createDropdown(newIconTrackerBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(_)
 
 	end)
 	createLabel(TargetNumberDropdown,"TargetNumber",50,30,0,0,BOTTOMLEFT,TOPLEFT,"Number",0,1)
 	
-	local dropdown = createDropdown(newIconTrackerBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
+	dropdown = createDropdown(newIconTrackerBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
 		if selection == "Yourself" or selection == "Current Target" then
 			TargetNumberDropdown:SetHidden(true)
 		else
@@ -1058,33 +930,33 @@ function HT_Settings_initializeUI()
 	end)
 	createLabel(dropdown,"Target",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Target",0,1)
 	
-	local dropdown2 = createDropdown(newIconTrackerBackdrop,"dropdown2",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(selection)
+	dropdown2 = createDropdown(newIconTrackerBackdrop,"dropdown2",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(_)
 
 	end)
 	createLabel(dropdown2,"a",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Type",0,1)
 
 	
 	createLabel(newIconTrackerBackdrop,"colorpickerText",150,30,15,500,TOPLEFT,TOPLEFT,"Color",0,1)
-	local colorpicker = createColorpicker(newIconTrackerBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(color) 
+	colorpicker = createColorpicker(newIconTrackerBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(_)
 		
 	end)
 	createTexture(newIconTrackerBackdrop,"edge3",475,2,15,400,TOPLEFT,TOPLEFT,"")
 	
 	createLabel(newIconTrackerBackdrop,"TextSizeX",150,30,15,440,TOPLEFT,TOPLEFT,"Width",0)
-	local widthEditbox = createEditbox(newIconTrackerBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(editbox)
+	widthEditbox = createEditbox(newIconTrackerBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(_)
 
 	end,80)
 	createLabel(newIconTrackerBackdrop,"TextSizeY",150,30,250,440,TOPLEFT,TOPLEFT,"Height",0)
-	local heightEditbox = createEditbox(newIconTrackerBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(editbox)
+	heightEditbox = createEditbox(newIconTrackerBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(_)
 
 	end,80)
 
 	createLabel(newIconTrackerBackdrop,"textLabel",150,30,250,500,TOPLEFT,TOPLEFT,"Text",0,1)
-	local textEditbox = createEditbox(newIconTrackerBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(editbox)
+	textEditbox = createEditbox(newIconTrackerBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(_)
 		
 	end)
 
-	local buttonCreateTracker = createButton(newIconTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
+	createButton(newIconTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
 		createNewTracker("Icon Tracker",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
 
 		
@@ -1120,19 +992,19 @@ function HT_Settings_initializeUI()
 	createLabel(newGroupTrackerBackdrop,"generalLabel",150,30,180,10,TOPLEFT,TOPLEFT,"CREATE NEW PROGRESS BAR",1,1,"BOLD_FONT",26)
 	createTexture(newGroupTrackerBackdrop,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(newGroupTrackerBackdrop,"name",150,30,15,60,TOPLEFT,TOPLEFT,"Name",0,1)
-	local nameEditbox = createEditbox(newGroupTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
+	nameEditbox = createEditbox(newGroupTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(_)
 
 	end)
-	local IDsDropdown = createDropdown(newGroupTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(selection)
+	IDsDropdown = createDropdown(newGroupTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(_)
 
 	end)
-	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
+	editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(_)
 
 	end)
 	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
 
 	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
-		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
+		HT_removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
 		IDsDropdown:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
@@ -1146,12 +1018,12 @@ function HT_Settings_initializeUI()
 
 
 
-	local TargetNumberDropdown = createDropdown(newGroupTrackerBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(selection)
+	TargetNumberDropdown = createDropdown(newGroupTrackerBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(_)
 
 	end)
 	createLabel(TargetNumberDropdown,"TargetNumber",50,30,0,0,BOTTOMLEFT,TOPLEFT,"Number",0,1)
 	
-	local dropdown = createDropdown(newGroupTrackerBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
+	dropdown = createDropdown(newGroupTrackerBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
 		if selection == "Yourself" or selection == "Current Target" then
 			TargetNumberDropdown:SetHidden(true)
 		else
@@ -1162,33 +1034,33 @@ function HT_Settings_initializeUI()
 	end)
 	createLabel(dropdown,"Target",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Target",0,1)
 	
-	local dropdown2 = createDropdown(newGroupTrackerBackdrop,"dropdown2",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(selection)
+	dropdown2 = createDropdown(newGroupTrackerBackdrop,"dropdown2",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(_)
 
 	end)
 	createLabel(dropdown2,"a",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Type",0,1)
 
 	
 	createLabel(newGroupTrackerBackdrop,"colorpickerText",150,30,15,500,TOPLEFT,TOPLEFT,"Color",0,1)
-	local colorpicker = createColorpicker(newGroupTrackerBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(color) 
+	colorpicker = createColorpicker(newGroupTrackerBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(_)
 		
 	end)
 	createTexture(newGroupTrackerBackdrop,"edge3",475,2,15,400,TOPLEFT,TOPLEFT,"")
 	
 	createLabel(newGroupTrackerBackdrop,"TextSizeX",150,30,15,440,TOPLEFT,TOPLEFT,"Width",0)
-	local widthEditbox = createEditbox(newGroupTrackerBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(editbox)
+	widthEditbox = createEditbox(newGroupTrackerBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(_)
 
 	end,100)
 	createLabel(newGroupTrackerBackdrop,"TextSizeY",150,30,250,440,TOPLEFT,TOPLEFT,"Height",0)
-	local heightEditbox = createEditbox(newGroupTrackerBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(editbox)
+	heightEditbox = createEditbox(newGroupTrackerBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(_)
 
 	end,100)
 
 	createLabel(newGroupTrackerBackdrop,"textLabel",150,30,250,500,TOPLEFT,TOPLEFT,"Text",0,1)
-	local textEditbox = createEditbox(newGroupTrackerBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(editbox)
+	textEditbox = createEditbox(newGroupTrackerBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(_)
 		
 	end)
 
-	local buttonCreateTracker = createButton(newGroupTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
+	createButton(newGroupTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
 		createNewTracker("Group",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
 
 		
@@ -1225,19 +1097,19 @@ function HT_Settings_initializeUI()
 	createLabel(newGroupMemberTrackerBackdrop,"generalLabel",150,30,180,10,TOPLEFT,TOPLEFT,"CREATE NEW PROGRESS BAR",1,1,"BOLD_FONT",26)
 	createTexture(newGroupMemberTrackerBackdrop,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(newGroupMemberTrackerBackdrop,"name",150,30,15,60,TOPLEFT,TOPLEFT,"Name",0,1)
-	local nameEditbox = createEditbox(newGroupMemberTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
+	nameEditbox = createEditbox(newGroupMemberTrackerBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(_)
 
 	end)
-	local IDsDropdown = createDropdown(newGroupMemberTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(selection)
+	IDsDropdown = createDropdown(newGroupMemberTrackerBackdrop,"IDs dropdown",175,32,15,165,TOPLEFT,TOPLEFT,{},nil,function(_)
 
 	end)
-	local editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
+	editbox = createEditbox(IDsDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(_)
 
 	end)
 	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
 
 	createButton(IDsDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
-		removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
+		HT_removeElementFromTable(IDsDropdown.choices,IDsDropdown.selection)
 		IDsDropdown.selection = HT_pickAnyElement(IDsDropdown.choices)
 		IDsDropdown:updateDropdown()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
@@ -1251,12 +1123,12 @@ function HT_Settings_initializeUI()
 
 
 
-	local TargetNumberDropdown = createDropdown(newGroupMemberTrackerBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(selection)
+	TargetNumberDropdown = createDropdown(newGroupMemberTrackerBackdrop,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT, {1},1,function(_)
 
 	end)
 	createLabel(TargetNumberDropdown,"TargetNumber",50,30,0,0,BOTTOMLEFT,TOPLEFT,"Number",0,1)
 	
-	local dropdown = createDropdown(newGroupMemberTrackerBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
+	dropdown = createDropdown(newGroupMemberTrackerBackdrop,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),"Yourself",function(selection)
 		if selection == "Yourself" or selection == "Current Target" then
 			TargetNumberDropdown:SetHidden(true)
 		else
@@ -1267,33 +1139,33 @@ function HT_Settings_initializeUI()
 	end)
 	createLabel(dropdown,"Target",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Target",0,1)
 	
-	local dropdown2 = createDropdown(newGroupMemberTrackerBackdrop,"dropdown2",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(selection)
+	dropdown2 = createDropdown(newGroupMemberTrackerBackdrop,"dropdown2",200,30,245,145,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),"Get Effect Duration",function(_)
 
 	end)
 	createLabel(dropdown2,"a",150,30,0,0,BOTTOMLEFT,TOPLEFT,"Type",0,1)
 
 	
 	createLabel(newGroupMemberTrackerBackdrop,"colorpickerText",150,30,15,500,TOPLEFT,TOPLEFT,"Color",0,1)
-	local colorpicker = createColorpicker(newGroupMemberTrackerBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(color) 
+	colorpicker = createColorpicker(newGroupMemberTrackerBackdrop,"colorpicker",70,30,15,525,TOPLEFT,TOPLEFT,CST.barColor,function(_)
 		
 	end)
 	createTexture(newGroupMemberTrackerBackdrop,"edge3",475,2,15,400,TOPLEFT,TOPLEFT,"")
 	
 	createLabel(newGroupMemberTrackerBackdrop,"TextSizeX",150,30,15,440,TOPLEFT,TOPLEFT,"Width",0)
-	local widthEditbox = createEditbox(newGroupMemberTrackerBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(editbox)
+	widthEditbox = createEditbox(newGroupMemberTrackerBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(_)
 
 	end,100)
 	createLabel(newGroupMemberTrackerBackdrop,"TextSizeY",150,30,250,440,TOPLEFT,TOPLEFT,"Height",0)
-	local heightEditbox = createEditbox(newGroupMemberTrackerBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(editbox)
+	heightEditbox = createEditbox(newGroupMemberTrackerBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(_)
 
 	end,100)
 
 	createLabel(newGroupMemberTrackerBackdrop,"textLabel",150,30,250,500,TOPLEFT,TOPLEFT,"Text",0,1)
-	local textEditbox = createEditbox(newGroupMemberTrackerBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(editbox)
+	textEditbox = createEditbox(newGroupMemberTrackerBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(_)
 		
 	end)
 
-	local buttonCreateTracker = createButton(newGroupMemberTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
+	createButton(newGroupMemberTrackerBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
 		createNewTracker("Group Member",nameEditbox:GetText(),textEditbox:GetText(),IDsDropdown.choices,tonumber(widthEditbox:GetText()),tonumber(heightEditbox:GetText()),colorpicker.color,dropdown.selection,TargetNumberDropdown.selection,dropdown2.selection)
 
 		
@@ -1330,13 +1202,13 @@ function HT_Settings_initializeUI()
 	createLabel(newImportBackdrop,"generalLabel",150,30,180,10,TOPLEFT,TOPLEFT,"CREATE NEW PROGRESS BAR",1,1,"BOLD_FONT",26)
 	createTexture(newImportBackdrop,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(newImportBackdrop,"name",150,30,15,60,TOPLEFT,TOPLEFT,"Import String",0,1)
-	local nameEditbox = createEditbox(newImportBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(editbox)
+	nameEditbox = createEditbox(newImportBackdrop,"editbox",200,30,15,85,TOPLEFT,TOPLEFT,function(_)
 
 	end)
 
 	
 
-	local buttonCreateTracker = createButton(newImportBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function() 
+	createButton(newImportBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
 		local importString = nameEditbox:GetText()
 		if importString then
 			importString = string.sub(importString,2,#importString-1)
@@ -1392,29 +1264,29 @@ function HT_Settings_initializeUI()
 	createLabel(displayBackground,"displayLabel",150,30,180,10,TOPLEFT,TOPLEFT,"DISPLAY",1,1,"BOLD_FONT",26)
 	createTexture(displayBackground,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(displayBackground,"texturePath",150,30,15,60,TOPLEFT,TOPLEFT,"Texture path",0,1)
-	local editbox = createEditbox(displayBackground,"editbox",475,30,15,90,TOPLEFT,TOPLEFT,function(editbox)
-		CST.icon = editbox:GetText() 
+	editbox = createEditbox(displayBackground,"editbox",475,30,15,90,TOPLEFT,TOPLEFT,function(thisEditbox)
+		CST.icon = thisEditbox:GetText()
 		updateDisplayBackground()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.icon)
 	createLabel(displayBackground,"autoTextureDropdownLabel",180,30,15,120,TOPLEFT,TOPLEFT,"Set automatic texture from ID",0,1)
-	local autoTextureDropdown = createDropdown(displayBackground,"autoTextureDropdown",200,30,15,145,TOPLEFT,TOPLEFT,HT_getIdsFromAllEvents(CST),HT_pickAnyElement(HT_getIdsFromAllEvents(CST),0),function(selection)
+	local autoTextureDropdown = createDropdown(displayBackground,"autoTextureDropdown",200,30,15,145,TOPLEFT,TOPLEFT,HT_getIdsFromAllEvents(CST),HT_pickAnyElement(HT_getIdsFromAllEvents(CST),0),function(_)
 		
 	end)
 	createButton(displayBackground,"button",200,30,250,145,TOPLEFT,TOPLEFT,function() 
 		CST.icon = GetAbilityIcon(autoTextureDropdown.selection or 0)
 		editbox:SetText(GetAbilityIcon(autoTextureDropdown.selection or 0))
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		relocateLeftSide()
 	end,"Auto-set texture",nil,true)
 	createLabel(displayBackground,"fontLabel",90,30,15,180,TOPLEFT,TOPLEFT,"Font",0,1)
 	createDropdown(displayBackground,"fontDropdown",90,30,15,205,TOPLEFT,TOPLEFT,fonts,CST.font,function(selection)
 		if CST.name ~= "none" then
 			CST.font = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then
-					HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers))
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then
+					HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers))
 			else
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end
 	end)
@@ -1422,28 +1294,28 @@ function HT_Settings_initializeUI()
 	createDropdown(displayBackground,"fontWeightDropdown",60,30,105,205,TOPLEFT,TOPLEFT,fontWeights,CST.fontWeight,function(selection)
 		if CST.name ~= "none" then
 			CST.fontWeight = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 	createLabel(displayBackground,"fontSizeLabel",50,30,160,180,TOPLEFT,TOPLEFT,"Size",0,1)
 	createDropdown(displayBackground,"fontSizeDropdown",50,30,160,205,TOPLEFT,TOPLEFT,fontSizes,CST.fontSize,function(selection)
 		if CST.name ~= "none" then
 			CST.fontSize = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 	createLabel(displayBackground,"textLabel",150,30,250,180,TOPLEFT,TOPLEFT,"Text",0,1)
-	createEditbox(displayBackground,"textEditbox",200,30,250,205,TOPLEFT,TOPLEFT,function(editbox)
-		CST.text = editbox:GetText() 
+	createEditbox(displayBackground,"textEditbox",200,30,250,205,TOPLEFT,TOPLEFT,function(thisEditbox)
+		CST.text = thisEditbox:GetText()
 		updateDisplayBackground()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.text)
 	createLabel(displayBackground,"colorpickerText",70,30,15,250,TOPLEFT,TOPLEFT,"Bar",0,1)
 	createColorpicker(displayBackground,"colorpickerRegular",70,30,15,275,TOPLEFT,TOPLEFT,CST.barColor,function(color) 
 		if CST.name ~= "none" then
 			if type(color) == "table" then
 				CST.barColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end
 	end)
@@ -1454,7 +1326,7 @@ function HT_Settings_initializeUI()
 		if CST.name ~= "none" then
 			if type(color) == "table" then
 				CST.outlineColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end
 	end)
@@ -1462,7 +1334,7 @@ function HT_Settings_initializeUI()
 	createColorpicker(displayBackground,"colorpicker3",70,30,185,275,TOPLEFT,TOPLEFT,CST.backgroundColor,function(color) 
 		if type(color) == "table" then
 			CST.backgroundColor = color 
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 
@@ -1471,7 +1343,7 @@ function HT_Settings_initializeUI()
 		if CST.name ~= "none" then
 			if type(color) == "table" then
 				CST.textColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end
 	end)
@@ -1481,7 +1353,7 @@ function HT_Settings_initializeUI()
 		if CST.name ~= "none" then
 			if type(color) == "table" then
 				CST.timeColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end
 	end)
@@ -1491,7 +1363,7 @@ function HT_Settings_initializeUI()
 		if CST.name ~= "none" then
 			if type(color) == "table" then
 				CST.stacksColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end
 	end)
@@ -1501,7 +1373,7 @@ function HT_Settings_initializeUI()
 		if CST.name ~= "none" then
 			if type(color) == "table" then
 				CST.cooldownColor = color 
-				if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 			end
 		end
 	end)
@@ -1510,7 +1382,7 @@ function HT_Settings_initializeUI()
 	createCheckbox(displayBackground,"inverseCheckbox", 30,30,270,250,TOPLEFT,TOPLEFT,CST.inverse,function(arg) 
 		if CST.name ~= "none" then
 			CST.inverse = arg
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 	createLabel(displayBackground,"inverseCheckboxLabel",150,30,310,250,TOPLEFT,TOPLEFT,"Inverse",0,1)
@@ -1519,7 +1391,7 @@ function HT_Settings_initializeUI()
 	createCheckbox(displayBackground,"remainingTimeCheckbox", 30,30,270,290,TOPLEFT,TOPLEFT,CST.timer1,function(arg) 
 		if CST.name ~= "none" then
 			CST.timer1 = arg
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 	createLabel(displayBackground,"RemainingTimeCheckboxLabel",150,30,310,290,TOPLEFT,TOPLEFT,"Remaining Time",0,1)
@@ -1529,7 +1401,7 @@ function HT_Settings_initializeUI()
 	createDropdown(displayBackground,"decimalsDropdown",50,30,400,305,TOPLEFT,TOPLEFT,{0,1},CST.decimals,function(selection)
 		if CST.name ~= "none" then
 			CST.decimals = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 
@@ -1537,7 +1409,7 @@ function HT_Settings_initializeUI()
 	createCheckbox(displayBackground,"stacksCheckbox", 30,30,270,330,TOPLEFT,TOPLEFT,CST.timer2,function(arg) 
 		if CST.name ~= "none" then
 			CST.timer2 = arg
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 	createLabel(displayBackground,"stacksCheckboxLabel",150,30,310,330,TOPLEFT,TOPLEFT,"Stacks",0,1)
@@ -1546,7 +1418,7 @@ function HT_Settings_initializeUI()
 	local drawLevelDropdown = createDropdown(displayBackground,"drawLevelDropdown",50,30,15,400,TOPLEFT,TOPLEFT,{0,1,2,3,4},CST.drawLevel,function(selection)
 		if CST.name ~= "none" then
 			CST.drawLevel = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 	createLabel(drawLevelDropdown,"drawLevelLabeln",150,30,0,-25,TOPLEFT,TOPLEFT,"Draw Level",0)
@@ -1558,35 +1430,35 @@ function HT_Settings_initializeUI()
 
 	createTexture(displayBackground,"edge3",475,2,15,530,TOPLEFT,TOPLEFT,"")
 	createLabel(displayBackground,"TextPosX",150,30,15,540,TOPLEFT,TOPLEFT,"X position",0)
-	createEditbox(displayBackground,"TextPosXEditbox",200,30,15,565,TOPLEFT,TOPLEFT,function(editbox)
-		CST.xOffset = editbox:GetText() 
+	createEditbox(displayBackground,"TextPosXEditbox",200,30,15,565,TOPLEFT,TOPLEFT,function(thisEditbox)
+		CST.xOffset = thisEditbox:GetText()
 		updateDisplayBackground()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.xOffset,TEXT_TYPE_NUMERIC)
 	createLabel(displayBackground,"TextPosY",150,30,250,540,TOPLEFT,TOPLEFT,"Y position",0)
-	createEditbox(displayBackground,"cstYposEditbox",200,30,250,565,TOPLEFT,TOPLEFT,function(editbox)
-		CST.yOffset = editbox:GetText() 
+	createEditbox(displayBackground,"cstYposEditbox",200,30,250,565,TOPLEFT,TOPLEFT,function(thisEditbox)
+		CST.yOffset = thisEditbox:GetText()
 		updateDisplayBackground()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.yOffset,TEXT_TYPE_NUMERIC)
 	createLabel(displayBackground,"TextSizeX",150,30,15,590,TOPLEFT,TOPLEFT,"Width",0)
-	createEditbox(displayBackground,"cstXsizeEditbox",200,30,15,615,TOPLEFT,TOPLEFT,function(editbox)
-		CST.sizeX = editbox:GetText()
+	createEditbox(displayBackground,"cstXsizeEditbox",200,30,15,615,TOPLEFT,TOPLEFT,function(thisEditbox)
+		CST.sizeX = thisEditbox:GetText()
 		updateDisplayBackground()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.sizeX,TEXT_TYPE_NUMERIC)
 	createLabel(displayBackground,"TextSizeY",150,30,250,590,TOPLEFT,TOPLEFT,"Height",0)
-	createEditbox(displayBackground,"cstYsizeEditbox",200,30,250,615,TOPLEFT,TOPLEFT,function(editbox)
-		CST.sizeY = editbox:GetText() 
+	createEditbox(displayBackground,"cstYsizeEditbox",200,30,250,615,TOPLEFT,TOPLEFT,function(thisEditbox)
+		CST.sizeY = thisEditbox:GetText()
 		updateDisplayBackground()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.sizeY,TEXT_TYPE_NUMERIC)
 	
 	
 	local outlineThicknessDropdown = createDropdown(displayBackground,"outlineThicknessDropdown",200,30,15,665,TOPLEFT,TOPLEFT,{1,2,4,8,16},CST.outlineThickness,function(selection)
 		if CST.name ~= "none" then
 			CST.outlineThickness = selection
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end)
 	createLabel(outlineThicknessDropdown,"outlineThicknessLabel",150,30,0,-25,TOPLEFT,TOPLEFT,"Outline Thickness",0)
@@ -1600,24 +1472,25 @@ function HT_Settings_initializeUI()
 	createLabel(generalBackground,"generalLabel",150,30,180,10,TOPLEFT,TOPLEFT,"GENERAL",1,1,"BOLD_FONT",26)
 	createTexture(generalBackground,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 	createLabel(generalBackground,"Name",150,30,15,50,TOPLEFT,TOPLEFT,"Name",0,1)
-	local editbox = createEditbox(generalBackground,"NameEditbox",200,30,15,75,TOPLEFT,TOPLEFT,function(editbox)
-		if not getTrackerFromName(editbox:GetText(),HTSV.trackers) then
-			changeTrackerName(CST.name,editbox:GetText())
-			CST = getTrackerFromName(editbox:GetText(),HTSV.trackers)
+	createEditbox(generalBackground,"NameEditbox",200,30,15,75,TOPLEFT,TOPLEFT,function(thisEditbox)
+		if not HT_getTrackerFromName(thisEditbox:GetText(),HTSV.trackers) then
+			changeTrackerName(CST.name,thisEditbox:GetText())
+			CST = HT_getTrackerFromName(thisEditbox:GetText(),HTSV.trackers)
 
-			if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+			relocateLeftSide()
 			relocateLeftSide()
 		else
 			d("Duplicate name")
 		end
 	end,CST.name)
 	
-	local TargetNumberDropdown = createDropdown(generalBackground,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT,getTargetNumberChoices[CST.target] or {1},CST.targetNumber or 1,function(selection)
+	TargetNumberDropdown = createDropdown(generalBackground,"TargetNumberDropdown",50,30,395,75,TOPLEFT,TOPLEFT,getTargetNumberChoices[CST.target] or {1},CST.targetNumber or 1,function(selection)
 		CST.targetNumber = selection
 	end)
 	createLabel(TargetNumberDropdown,"TargetNumber",50,30,0,0,BOTTOMLEFT,TOPLEFT,"Number",0,1)
 	
-	local dropdown = createDropdown(generalBackground,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),CST.target,function(selection)
+	dropdown = createDropdown(generalBackground,"TargetDropdown",150,30,245,75,TOPLEFT,TOPLEFT,getKeysFromTable(HT_targets),CST.target,function(selection)
 		CST.target = selection
 		if CST.target == "Yourself" or CST.target == "Current Target" then
 			TargetNumberDropdown:SetHidden(true)
@@ -1677,44 +1550,44 @@ function HT_Settings_initializeUI()
 	end)
 
 		createLabel(generalBackground,"bossLabel",175,30,15,380,TOPLEFT,TOPLEFT,"Bosses",0,1)
-	local dropdown = createDropdown(generalBackground,"bossDropdown",175,32,15,435,TOPLEFT,TOPLEFT,CST.load.bosses,HT_pickAnyElement(CST.load.bosses),function(selection)
+	local bossDropdown = createDropdown(generalBackground,"bossDropdown",175,32,15,435,TOPLEFT,TOPLEFT,CST.load.bosses,HT_pickAnyElement(CST.load.bosses),function(_)
 
 	end)
 
-	local editbox = createEditbox(generalBackground,"addBossEditbox",175,30,15,405,TOPLEFT,TOPLEFT,function(editbox)
+	local addBossEditbox = createEditbox(generalBackground,"addBossEditbox",175,30,15,405,TOPLEFT,TOPLEFT,function(_)
 
 	end,nil)
 
 	createButton(generalBackground,"buttonDeleteBoss",30,30,190,435,TOPLEFT,TOPLEFT,function()
-		removeElementFromTable(CST.load.bosses,dropdown.selection)
-		dropdown.choices = CST.load.bosses
-		dropdown.selection = HT_pickAnyElement(CST.load.bosses)
-		dropdown:updateDropdown()
+		HT_removeElementFromTable(CST.load.bosses,bossDropdown.selection)
+		bossDropdown.choices = CST.load.bosses
+		bossDropdown.selection = HT_pickAnyElement(CST.load.bosses)
+		bossDropdown:updateDropdown()
 		updateDisplayBackground()
 	end, "-",nil,nil)
 	createButton(generalBackground,"buttonAddBoss",30,30,188,405,TOPLEFT,TOPLEFT,function() 
 
-		table.insert(CST.load.bosses,editbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
-		editbox:SetText(nil)
-		dropdown.choices = CST.load.bosses
-		dropdown.selection = HT_pickAnyElement(CST.load.bosses)
-		dropdown:updateDropdown()
+		table.insert(CST.load.bosses,addBossEditbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
+		addBossEditbox:SetText(nil)
+		bossDropdown.choices = CST.load.bosses
+		bossDropdown.selection = HT_pickAnyElement(CST.load.bosses)
+		bossDropdown:updateDropdown()
 		updateDisplayBackground()
 	end,"+",nil,nil)
 
 
 
 	createLabel(generalBackground,"skillsLabel",175,30,15,600,TOPLEFT,TOPLEFT,"Skills",0,1)
-	local dropdown = createDropdown(generalBackground,"skillDropdown",175,32,15,655,TOPLEFT,TOPLEFT,CST.load.skills,HT_pickAnyElement(CST.load.skills),function(selection)
+	dropdown = createDropdown(generalBackground,"skillDropdown",175,32,15,655,TOPLEFT,TOPLEFT,CST.load.skills,HT_pickAnyElement(CST.load.skills),function(_)
 
 	end)
 
-	local editbox = createEditbox(generalBackground,"addSkillEditbox",175,30,15,625,TOPLEFT,TOPLEFT,function(editbox)
+	editbox = createEditbox(generalBackground,"addSkillEditbox",175,30,15,625,TOPLEFT,TOPLEFT,function(_)
 
 	end,nil,TEXT_TYPE_NUMERIC)
 
 	createButton(generalBackground,"buttonDeleteSkill",30,30,190,655,TOPLEFT,TOPLEFT,function()
-		removeElementFromTable(CST.load.skills,dropdown.selection)
+		HT_removeElementFromTable(CST.load.skills,dropdown.selection)
 		dropdown.choices = CST.load.skills
 		dropdown.selection = HT_pickAnyElement(CST.load.skills)
 		dropdown:updateDropdown()
@@ -1733,16 +1606,16 @@ function HT_Settings_initializeUI()
 
 
 	createLabel(generalBackground,"itemSetsLabel",175,30,235,600,TOPLEFT,TOPLEFT,"Item Sets",0,1)
-	local dropdown = createDropdown(generalBackground,"itemSetDropdown",175,32,235,655,TOPLEFT,TOPLEFT,CST.load.itemSets,HT_pickAnyElement(CST.load.itemSets),function(selection)
+	dropdown = createDropdown(generalBackground,"itemSetDropdown",175,32,235,655,TOPLEFT,TOPLEFT,CST.load.itemSets,HT_pickAnyElement(CST.load.itemSets),function(_)
 
 	end)
 
-	local editbox = createEditbox(generalBackground,"addItemSetEditbox",175,30,235,625,TOPLEFT,TOPLEFT,function(editbox)
+	editbox = createEditbox(generalBackground,"addItemSetEditbox",175,30,235,625,TOPLEFT,TOPLEFT,function(_)
 
 	end)
 
 	createButton(generalBackground,"buttonDeleteitemSet",30,30,410,655,TOPLEFT,TOPLEFT,function()
-		removeElementFromTable(CST.load.itemSets,dropdown.selection)
+		HT_removeElementFromTable(CST.load.itemSets,dropdown.selection)
 		dropdown.choices = CST.load.itemSets
 		dropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		dropdown:updateDropdown()
@@ -1760,16 +1633,16 @@ function HT_Settings_initializeUI()
 
 
 	createLabel(generalBackground,"zonesLabel",175,30,235,480,TOPLEFT,TOPLEFT,"Zones",0,1)
-	local dropdown = createDropdown(generalBackground,"zoneDropdown",175,32,235,535,TOPLEFT,TOPLEFT,CST.load.zones,HT_pickAnyElement(CST.load.zones),function(selection)
+	dropdown = createDropdown(generalBackground,"zoneDropdown",175,32,235,535,TOPLEFT,TOPLEFT,CST.load.zones,HT_pickAnyElement(CST.load.zones),function(_)
 
 	end)
 
-	local editbox = createEditbox(generalBackground,"addzoneEditbox",175,30,235,505,TOPLEFT,TOPLEFT,function(editbox)
+	editbox = createEditbox(generalBackground,"addzoneEditbox",175,30,235,505,TOPLEFT,TOPLEFT,function(_)
 
 	end)
 
 	createButton(generalBackground,"buttonDeletezone",30,30,410,535,TOPLEFT,TOPLEFT,function()
-		removeElementFromTable(CST.load.zones,dropdown.selection)
+		HT_removeElementFromTable(CST.load.zones,dropdown.selection)
 		dropdown.choices = CST.load.zones
 		dropdown.selection = HT_pickAnyElement(CST.load.zones)
 		dropdown:updateDropdown()
@@ -1818,15 +1691,15 @@ function HT_Settings_initializeUI()
 		CST.conditions[CSC].arg1 = selection
 	end
 	end)
-	local addConditionLabel = createLabel(conditionBackground,"ACLabel",200,20,45,120,TOPLEFT,TOPLEFT,"Set condition",0)
+	createLabel(conditionBackground,"ACLabel",200,20,45,120,TOPLEFT,TOPLEFT,"Set condition",0)
 	local dropdownOperator = createDropdown(conditionBackground,"dropdownOperator",50,30,260,140,TOPLEFT,TOPLEFT,getKeysFromTable(operators),CST.conditions[CSC].operator,function(selection)
 	if CSC ~= "none" then
 		CST.conditions[CSC].operator = selection
 	end
 	end)
-	local editboxArg2 = createEditbox(conditionBackground,"editboxArg2",150,30,320,140,TOPLEFT,TOPLEFT,function(editbox) 
+	local editboxArg2 = createEditbox(conditionBackground,"editboxArg2",150,30,320,140,TOPLEFT,TOPLEFT,function(thisEditbox)
 	if CSC ~= "none" then
-		CST.conditions[CSC].arg2 = tonumber(editbox:GetText()) 
+		CST.conditions[CSC].arg2 = tonumber(thisEditbox:GetText())
 	end
 	end,CST.conditions[CSC].arg2)
 	local resultColorpicker = createColorpicker(conditionBackground,"resultColorpicker", 70,30,260,190,TOPLEFT,TOPLEFT,CST.conditions[CSC].resultArguments,function(color) 
@@ -1834,7 +1707,7 @@ function HT_Settings_initializeUI()
 		CST.conditions[CSC].resultArguments = color
 	end
 	end)
-	local resultCheckbox = createCheckbox(conditionBackground,"resultCheckbox", 30,30,280,150,TOPLEFT,TOPLEFT,CST.conditions[CSC].resultArguments,function(arg) 
+	createCheckbox(conditionBackground,"resultCheckbox", 30,30,280,150,TOPLEFT,TOPLEFT,CST.conditions[CSC].resultArguments,function(arg)
 	if CSC ~= "none" then
 		CST.conditions[CSC].resultArguments = arg
 	end
@@ -1846,8 +1719,8 @@ function HT_Settings_initializeUI()
 	end
 	end)
 	HT_processResultControlType()
-	local resultLabel = createLabel(conditionBackground,"RLabel",200,20,45,170,TOPLEFT,TOPLEFT,"Set result",0)
-	local dropdown = createDropdown(conditionBackground,"dropdown",200,30,45,80,TOPLEFT,TOPLEFT,getKeysFromTable(CST.conditions),CSC,function(selection)
+	createLabel(conditionBackground,"RLabel",200,20,45,170,TOPLEFT,TOPLEFT,"Set result",0)
+	dropdown = createDropdown(conditionBackground,"dropdown",200,30,45,80,TOPLEFT,TOPLEFT,getKeysFromTable(CST.conditions),CSC,function(selection)
 	CSC = selection
 	dropdownArg1.selection = CST.conditions[CSC].arg1
 	dropdownArg1:updateDropdown()
@@ -1859,9 +1732,8 @@ function HT_Settings_initializeUI()
 	dropdownResult:updateDropdown()
 	HT_processResultControlType()
 	end)
-	local selectedConditionLabel = createLabel(conditionBackground,"SCLabel",200,20,45,60,TOPLEFT,TOPLEFT,"Select/Add condition",0)
-	createButton(conditionBackground,"button",30,30,15,80,TOPLEFT,TOPLEFT,function() 
-		--PlaySound(SOUNDS.DUEL_START)
+	createLabel(conditionBackground,"SCLabel",200,20,45,60,TOPLEFT,TOPLEFT,"Select/Add condition",0)
+	createButton(conditionBackground,"button",30,30,15,80,TOPLEFT,TOPLEFT,function()
 		table.insert(CST.conditions,{
 		arg1 = "Remaining Time",
 		arg2 = 0,
@@ -1895,24 +1767,24 @@ function HT_Settings_initializeUI()
 	createLabel(eventBackground,"displayLabel",150,30,180,10,TOPLEFT,TOPLEFT,"EVENT",1,1,"BOLD_FONT",26)
 	createTexture(eventBackground,"edge2",165,2,330,22.5,TOPLEFT,TOPLEFT,"")
 
-	local dropdown = createDropdown(eventBackground,"IDs dropdown",175,32,300,100,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.Ids,HT_pickAnyElement(CST.events[CSE].arguments.Ids),function(selection)
+	dropdown = createDropdown(eventBackground,"IDs dropdown",175,32,300,100,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.Ids,HT_pickAnyElement(CST.events[CSE].arguments.Ids),function(_)
 
 	end)
 
-	local editbox = createEditbox(dropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(editbox)
+	editbox = createEditbox(dropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(_)
 
 	end)
 	createLabel(editbox,"IdsLabel",175,30,0,0,BOTTOMLEFT,TOPLEFT,"IDs",0,1)
 
 	createButton(dropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		removeElementFromTable(CST.events[CSE].arguments.Ids,dropdown.selection)
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
+		HT_removeElementFromTable(CST.events[CSE].arguments.Ids,dropdown.selection)
 		
 		dropdown.choices = CST.events[CSE].arguments.Ids
 		dropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		dropdown:updateDropdown()
 		updateDisplayBackground()
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
 	createButton(editbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 
@@ -1924,40 +1796,36 @@ function HT_Settings_initializeUI()
 		updateDisplayBackground()
 	end,nil,"/esoui/art/buttons/plus_up.dds",nil)
 
-	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,170,TOPLEFT,TOPLEFT,function(editbox)
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.events[CSE].arguments.cooldown = editbox:GetText() 
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,170,TOPLEFT,TOPLEFT,function(thisEditbox)
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
+		CST.events[CSE].arguments.cooldown = thisEditbox:GetText()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 
 	end,CST.events[CSE].arguments.cooldown,TEXT_TYPE_NUMERIC)
 	createLabel(arg1Editbox,"label",60,30,0,0,BOTTOMLEFT,TOPLEFT,"Cooldown",0)
 
-	local onlyYourCastCheckbox = createCheckbox(eventBackground,"onlyYourCastCheckbox", 30,30,60,175,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.onlyYourCast,function(arg) 
-	if CST ~= "none" then
-		CST.events[CSE].arguments.onlyYourCast = arg
-	end
-	end)
-	createLabel(onlyYourCastCheckbox,"label",120,30,0,0,LEFT,RIGHT,"Only your cast",0)
+	local onlyYourCastCheckbox = createCheckbox(eventBackground,"onlyYourCastCheckbox", 30,30,60,175,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.onlyYourCast,function(arg)
+		if CST ~= "none" then
+			CST.events[CSE].arguments.onlyYourCast = arg
+		end
+	end, "Only your cast")
 
 	local overwriteShortedDurationCheckbox = createCheckbox(eventBackground,"overwriteShortedDurationCheckbox", 30,30,60,205,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.overwriteShorterDuration,function(arg) 
 	if CST ~= "none" then
 		CST.events[CSE].arguments.overwriteShorterDuration = arg
 	end
-	end)
-	createLabel(overwriteShortedDurationCheckbox,"label",400,30,0,0,LEFT,RIGHT,"Don't overwrite effects when shorter duration is applied",0)
-
+	end,"Don't overwrite effects when shorter duration is applied")
 	local dontUpdateFromThisEvent = createCheckbox(eventBackground,"dontUpdateFromThisEvent", 30,30,60,650,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.dontUpdateFromThisEvent,function(arg) 
 	if CST ~= "none" then
 		CST.events[CSE].arguments.dontUpdateFromThisEvent = arg
 	end
-	end)
-	createLabel(dontUpdateFromThisEvent,"label",400,70,0,0,LEFT,RIGHT,"Don't update duration and stacks from this event (ignore original code and run only custom one)",0)
+	end,"Don't update duration and stacks from this event (ignore original code and run only custom one)")
 
 
 
-	local dropdown2 = createDropdown(eventBackground,"dropdown2",200,30,50,140,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),CST.events[CSE].type,function(selection)
+	dropdown2 = createDropdown(eventBackground,"dropdown2",200,30,50,140,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),CST.events[CSE].type,function(selection)
 	if CST.name ~= "none" then
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		CST.events[CSE].type = selection
 		if selection == "Get Effect Cooldown" then
 			arg1Editbox:SetHidden(false)
@@ -1969,7 +1837,7 @@ function HT_Settings_initializeUI()
 			overwriteShortedDurationCheckbox:Update(CST.events[CSE].arguments.overwriteShorterDuration)
 			arg1Editbox:SetHidden(true)
 		end
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end
 	end)
 	createLabel(dropdown2,"label",200,30,0,0,BOTTOMLEFT,TOPLEFT,"Event Type",0)
@@ -1986,16 +1854,16 @@ function HT_Settings_initializeUI()
 	createTexture(eventBackground,"edge47",165,2,330,272.5,TOPLEFT,TOPLEFT,"")	
 
 
-	local luaCodeEditbox = createMultilineEditbox(eventBackground,"luaCodeEditbox",400,300,50,320,TOPLEFT,TOPLEFT,function(editbox)
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.events[CSE].arguments.luaCodeToExecute = editbox:GetText() 
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):Update(getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+	local luaCodeEditbox = createMultilineEditbox(eventBackground,"luaCodeEditbox",400,300,50,320,TOPLEFT,TOPLEFT,function(thisEditbox)
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
+		CST.events[CSE].arguments.luaCodeToExecute = thisEditbox:GetText()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 
 	end,CST.events[CSE].arguments.luaCodeToExecute)
 	createLabel(luaCodeEditbox,"label",500,30,0,0,BOTTOMLEFT,TOPLEFT,"Custom Lua Code executed every time event fires",0)
 
 
-	local dropdown = createDropdown(eventBackground,"dropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection) 
+	dropdown = createDropdown(eventBackground,"dropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection)
 
 	CSE = selection 
 	if CST.events[CSE].type == "Get Effect Cooldown" then
@@ -2037,7 +1905,7 @@ function HT_Settings_initializeUI()
 
 	createButton(dropdown,"deleteButton",30,30,0,0,LEFT,RIGHT,function() 
 		--PlaySound(SOUNDS.DUEL_START)
-		if CST.parent ~= "HT_Trackers" and getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		CST.events[CSE] = nil
 		dropdown.choices = getKeysFromTable(CST.events)
 		dropdown.selection = HT_pickAnyKey(CST.events)

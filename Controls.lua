@@ -6,7 +6,7 @@ function createButton(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, 
     button:SetHorizontalAlignment(TEXT_ALIGN_CENTER)
     button:SetVerticalAlignment(TEXT_ALIGN_CENTER)
     button:SetFont("ZoFontGameSmall")
-    button:SetHandler("OnMouseDown", function(self, btn, ctrl, alt, shift)
+    button:SetHandler("OnMouseDown", function(_, _, ctrl, alt, shift)
         buttonFunction(ctrl, alt, shift)
     end)
     button:SetNormalTexture(textureOverride or "")
@@ -24,11 +24,11 @@ function createButton(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, 
     return button
 end
 
-function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, defaultValue, checkboxFunction)
+function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, defaultValue, checkboxFunction,labelText)
     local checkbox = WM:CreateControl("$(parent)" .. name, parent, CT_TEXTURE)
     checkbox.data = defaultValue
     checkbox:SetMouseEnabled(true)
-    checkbox:SetHandler("OnMouseUp", function(self, btn, upInside)
+    checkbox:SetHandler("OnMouseUp", function(_, _, _)
         checkbox.data = not checkbox.data
         if checkbox.data then
             checkbox:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
@@ -45,7 +45,7 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
         checkbox:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
     end
 
-    local function Update(self, newValue)
+    local function Update(_, newValue)
         checkbox.data = newValue
         if checkbox.data then
             checkbox:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
@@ -54,29 +54,31 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
         end
     end
     checkbox.Update = Update
-
+    if labelText then
+        checkbox.label = createLabel(checkbox,"label",400,60,0,0,LEFT,RIGHT,labelText,0)
+    end
     return checkbox
 end
 
-function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, color, colorpickerFunction)
+function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, color, colorpickerFunction,labelText)
     local colorpicker = WM:CreateControl("$(parent)" .. name, parent, CT_TEXTURE)
     colorpicker.color = color
     colorpicker:SetMouseEnabled(true)
-    colorpicker:SetHandler("OnMouseUp", function(self, btn, upInside)
+    colorpicker:SetHandler("OnMouseUp", function(_, _, upInside)
         if upInside then
-            local r, g, b, a = unpack(colorpicker.color)
+            local red, green, blue, alpha = unpack(colorpicker.color)
             if IsInGamepadPreferredMode() then
                 COLOR_PICKER_GAMEPAD:Show(function(r, g, b, a)
                     colorpicker.color = { r, g, b, a }
                     colorpicker:SetColor(r, g, b, a)
                     colorpickerFunction({ r, g, b, a })
-                end, r, g, b, a)
+                end, red, green, blue, alpha)
             else
                 COLOR_PICKER:Show(function(r, g, b, a)
                     colorpicker.color = { r, g, b, a }
                     colorpicker:SetColor(r, g, b, a)
                     colorpickerFunction({ r, g, b, a })
-                end, r, g, b, a)
+                end, red, green, blue, alpha)
             end
         end
     end)
@@ -92,11 +94,13 @@ function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnc
     backdrop:SetAnchor(TOPLEFT, colorpicker, TOPLEFT, 0, 0)
     backdrop:SetDimensions(sizeX, sizeY)
     colorpicker.backdrop = backdrop
-
+    if labelText then
+        colorpicker.label = createLabel(colorpicker,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+    end
     return colorpicker
 end
 
-function createDropdown(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, choices, selection, dropdownFunction)
+function createDropdown(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, choices, selection, dropdownFunction,labelText)
     local comboBox = WM:CreateControlFromVirtual("$(parent)" .. name, parent, "ZO_ComboBox")
     comboBox.choices = choices
     comboBox.selection = selection or HT_pickAnyKey(choices)
@@ -106,11 +110,11 @@ function createDropdown(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
     comboBox.updateDropdown = function(self)
         local dropdown = self.dropdown
         dropdown:ClearItems()
-        for k, v in pairs(comboBox.choices) do
-            local entry = dropdown:CreateItemEntry(v, function(_, selection)
-                self.selection = selection
+        for _, v in pairs(comboBox.choices) do
+            local entry = dropdown:CreateItemEntry(v, function(_, dropdownSelection)
+                self.selection = dropdownSelection
                 if dropdownFunction then
-                    dropdownFunction(selection)
+                    dropdownFunction(dropdownSelection)
                 end
             end)
             dropdown:AddItem(entry)
@@ -120,6 +124,9 @@ function createDropdown(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
         end
     end
     comboBox:updateDropdown()
+    if labelText then
+        comboBox.label = createLabel(comboBox,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+    end
     return comboBox
 end
 
@@ -144,7 +151,7 @@ function createContainer(parent, name, sizeX, sizeY, xOffset, yOffset, fromAncho
     return control
 end
 
-function createEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, editboxFunction, defaultValue, textType)
+function createEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, editboxFunction, defaultValue, textType,labelText)
     local control = WM:CreateControl("$(parent)" .. name, parent, CT_CONTROL)
     control:SetDimensions(sizeX, sizeY)
     control:SetAnchor(fromAnchor, parent, toAnchor, xOffset, yOffset)
@@ -158,7 +165,7 @@ function createEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor,
     control.GetText = function(self)
         return self.editbox:GetText()
     end
-    editbox:SetHandler("OnFocusLost", function(self)
+    editbox:SetHandler("OnFocusLost", function(_)
         editboxFunction(control)
     end)
     editbox:SetHandler("OnEscape", function(self)
@@ -183,10 +190,13 @@ function createEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor,
     --control:SetResizeToFitDescendents(true)
     editbox:SetTextType(textType or TEXT_TYPE_ALL)
     editbox:SetMaxInputChars(30000)
+    if labelText then
+        control.label = createLabel(control,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+    end
     return control
 end
 
-function createMultilineEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, editboxFunction, defaultValue, textType)
+function createMultilineEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, editboxFunction, defaultValue, textType,labelText)
     local control = WM:CreateControl("$(parent)" .. name, parent, CT_CONTROL)
     control:SetDimensions(sizeX, sizeY)
     control:SetAnchor(fromAnchor, parent, toAnchor, xOffset, yOffset)
@@ -200,7 +210,7 @@ function createMultilineEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fr
     control.GetText = function(self)
         return self.editbox:GetText()
     end
-    editbox:SetHandler("OnFocusLost", function(self)
+    editbox:SetHandler("OnFocusLost", function(_)
         editboxFunction(control)
     end)
     editbox:SetHandler("OnEscape", function(self)
@@ -225,6 +235,9 @@ function createMultilineEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fr
     --control:SetResizeToFitDescendents(true)
     editbox:SetTextType(textType or TEXT_TYPE_ALL)
     editbox:SetMaxInputChars(30000)
+    if labelText then
+        control.label = createLabel(control,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+    end
     return control
 end
 
@@ -243,14 +256,14 @@ function createBackground(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnch
 
 end
 
-function createTexture(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, texturePath, backdropThickness, backdropColor)
+function createTexture(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, texturePath, backdropThickness, backdropColorArg)
     local texture = WM:CreateControl("$(parent)" .. name, parent, CT_TEXTURE, 4)
     texture:SetDimensions(sizeX, sizeY)
     texture:SetAnchor(fromAnchor, parent, toAnchor, xOffset, yOffset)
     texture:SetHidden(false)
     texture:SetTexture(texturePath)
     if backdropThickness then
-        local backdropColor = backdropColor or { 0.7, 0.7, 0.6, 1 }
+        local backdropColor = backdropColorArg or { 0.7, 0.7, 0.6, 1 }
         local backdrop = WM:CreateControl("$(parent)backdrop", texture, CT_BACKDROP, 4)
 
         backdrop:SetCenterColor(0, 0, 0, 0)
