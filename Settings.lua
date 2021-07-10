@@ -1348,7 +1348,9 @@ function HT_Settings_initializeUI()
 	end
 	end)
 	dropdownOperator.Update = function()
-		dropdownOperator.selection = CST.conditions[CSC].operator
+		if CSC ~= "none" then
+			dropdownOperator.selection = CST.conditions[CSC].operator
+		end
 		dropdownOperator:updateDropdown()
 	end
 
@@ -1358,7 +1360,9 @@ function HT_Settings_initializeUI()
 	end
 	end,CST.conditions[CSC].arg2)
 	editboxArg2.Update = function()
-		editboxArg2:SetText(CST.conditions[CSC].arg2)
+		if CSC ~= "none" then
+			editboxArg2:SetText(CST.conditions[CSC].arg2)
+		end
 	end
 
 	local resultColorpicker = createColorpicker(conditionBackground,"resultColorpicker", 70,30,260,190,TOPLEFT,TOPLEFT,CST.conditions[CSC].resultArguments,function(color) 
@@ -1377,8 +1381,12 @@ function HT_Settings_initializeUI()
 			["Hide Tracker"] = true,
 			["Show Proc"] = true,
 		}
-		resultColorpicker:SetHidden(visibilityConditions[CST.conditions[CSC].result])
-		resultColorpicker:SetColor(unpack(CST.conditions[CSC].resultArguments))
+		if CSC == "none" then
+			resultColorpicker:SetHidden(true)
+		else
+			resultColorpicker:SetHidden(visibilityConditions[CST.conditions[CSC].result])
+			resultColorpicker:SetColor(unpack(CST.conditions[CSC].resultArguments))
+		end
 	end
 
 	local resultCheckbox = createCheckbox(conditionBackground,"resultCheckbox", 30,30,280,150,TOPLEFT,TOPLEFT,CST.conditions[CSC].resultArguments,function(arg)
@@ -1397,7 +1405,11 @@ function HT_Settings_initializeUI()
 			["Hide Tracker"] = true,
 			["Show Proc"] = true,
 		}
-		resultCheckbox:SetHidden(visibilityConditions[CST.conditions[CSC].result])
+		if CSC == "none" then
+			resultColorpicker:SetHidden(true)
+		else
+			resultCheckbox:SetHidden(visibilityConditions[CST.conditions[CSC].result])
+		end
 	end
 
 	local dropdownResult = createDropdown(conditionBackground,"dropdownResult",200,30,45,190,TOPLEFT,TOPLEFT,getKeysFromTable(conditionResults),CST.conditions[CSC].result,function(selection)
@@ -1406,7 +1418,9 @@ function HT_Settings_initializeUI()
 	end
 	end,"Set Result")
 	dropdownResult.Update = function()
-		dropdownResult.selection = CST.conditions[CSC].result
+		if CSC ~= "none" then
+			dropdownResult.selection = CST.conditions[CSC].result
+		end
 		dropdownResult:updateDropdown()
 	end
 
