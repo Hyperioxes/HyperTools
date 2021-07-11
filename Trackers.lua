@@ -200,7 +200,7 @@ end
 --level
 --tier
 
-local function createIconTracker(parent, t)
+local function createIconTracker(parent, t, i)
 
     local container, icon, background, animationTexture, timer, stacks, outline, cooldown
 
@@ -312,13 +312,12 @@ local function createIconTracker(parent, t)
     local function Update(_, data, groupAnchor)
         if not container.delete then
             if HT_processLoad(data.load) then
-                EVENT_MANAGER:RegisterForUpdate("HT_IconTracker" .. data.name, 100, Process)
+                EVENT_MANAGER:RegisterForUpdate("HT_IconTracker" .. data.name..(i or ""), 100, Process)
             else
-                EVENT_MANAGER:UnregisterForUpdate("HT_IconTracker" .. data.name, 100)
+                EVENT_MANAGER:UnregisterForUpdate("HT_IconTracker" .. data.name..(i or ""), 100)
                 container:SetHidden(true)
             end
         end
-
         for key, event in pairs(data.events) do
             HT_eventFunctions[event.type](key, event, data)
         end

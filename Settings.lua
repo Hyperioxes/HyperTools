@@ -9,6 +9,29 @@ local settingsVariables = {
 	typeOfCreatedTracker = "Progress Bar",
 }
 
+local createdTrackerDefaultValues = {
+	["Progress Bar"] = {
+		width = 210,
+		height = 30
+	},
+	["Icon Tracker"] = {
+	width = 60,
+	height = 60,
+	},
+	["Group"] = {
+		width = 60,
+		height = 60,
+	},
+	["Group Member"] = {
+		width = 60,
+		height = 60,
+	},
+	["Import Tracker"] = {
+		width = 0,
+		height = 0,
+	},
+}
+
 
 local roleToId = {
 	["Damage Dealer"] = 1,
@@ -228,6 +251,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 			end
 			CST = HT_getTrackerFromName(t.name,HTSV.trackers)
 			CSC = HT_pickAnyKey(tracker.conditions)
+			CSE = HT_pickAnyKey(tracker.events)
 			settingsVariables.currentRightSide = "selectedTrackerSettingsBackdrop"
 			settingsVariables.currentRightSideEdit = "displayBackground"
 			updateUI()
@@ -641,12 +665,12 @@ function HT_Settings_initializeUI()
 
 	local widthEditboxPB = createEditbox(newProgressBarBackdrop,"cstXsizeEditbox",200,30,15,465,TOPLEFT,TOPLEFT,function(_) end,210,nil,"Width")
 	widthEditboxPB.Update = function()
-		widthEditboxPB:SetText(210)
+		widthEditboxPB:SetText(createdTrackerDefaultValues[settingsVariables.typeOfCreatedTracker].width or 0)
 	end
 
 	local heightEditboxPB = createEditbox(newProgressBarBackdrop,"cstYsizeEditbox",200,30,250,465,TOPLEFT,TOPLEFT,function(_) end,30,nil,"Height")
 	heightEditboxPB.Update = function()
-		heightEditboxPB:SetText(30)
+		heightEditboxPB:SetText(createdTrackerDefaultValues[settingsVariables.typeOfCreatedTracker].height or 0)
 	end
 
 	local textEditboxPB = createEditbox(newProgressBarBackdrop,"textEditbox",200,30,250,525,TOPLEFT,TOPLEFT,function(_) end,nil,nil,"Text")
@@ -1036,13 +1060,13 @@ function HT_Settings_initializeUI()
 	end
 
 	displayBackground.Update = function()
-		local displayButton = selectedTrackerSettingsBackdrop:GetNamedChild("button21")
+		local displayButton = selectedTrackerSettingsBackdrop:GetNamedChild("button11")
 		if settingsVariables.currentRightSideEdit == "displayBackground" then
 			displayBackground:SetHidden(false)
-			displayButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
+			displayButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
 		else
 			displayBackground:SetHidden(true)
-			displayButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
+			displayButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 		end
 		displayEditbox:Update()
 		autoTextureDropdown:Update()
@@ -1180,14 +1204,14 @@ function HT_Settings_initializeUI()
 		roleDropdown:updateDropdown()
 	end
 
-	local bossDropdown = createDropdown(generalBackground,"bossDropdown",175,32,15,435,TOPLEFT,TOPLEFT,CST.load.bosses,HT_pickAnyElement(CST.load.bosses),function(_) end,"Boss")
+	local bossDropdown = createDropdown(generalBackground,"bossDropdown",175,32,15,435,TOPLEFT,TOPLEFT,CST.load.bosses,HT_pickAnyElement(CST.load.bosses),function(_) end)
 	bossDropdown.Update = function()
 		bossDropdown.choices = CST.load.bosses
 		bossDropdown.selection = HT_pickAnyElement(CST.load.bosses)
 		bossDropdown:updateDropdown()
 	end
 
-	local addBossEditbox = createEditbox(generalBackground,"addBossEditbox",175,30,15,405,TOPLEFT,TOPLEFT,function(_) end)
+	local addBossEditbox = createEditbox(generalBackground,"addBossEditbox",175,30,15,405,TOPLEFT,TOPLEFT,function(_) end,nil,nil,"Bosses")
 	addBossEditbox.Update = function()
 
 	end
@@ -1207,14 +1231,14 @@ function HT_Settings_initializeUI()
 		bossDropdown:updateDropdown()
 	end,"+",nil,nil)
 
-	local skillDropdown = createDropdown(generalBackground,"skillDropdown",175,32,15,655,TOPLEFT,TOPLEFT,CST.load.skills,HT_pickAnyElement(CST.load.skills),function(_) end,"Skills")
+	local skillDropdown = createDropdown(generalBackground,"skillDropdown",175,32,15,655,TOPLEFT,TOPLEFT,CST.load.skills,HT_pickAnyElement(CST.load.skills),function(_) end)
 	skillDropdown.Update = function()
 		skillDropdown.choices = CST.load.skills
 		skillDropdown.selection = HT_pickAnyElement(CST.load.skills)
 		skillDropdown:updateDropdown()
 	end
 
-	local addSkillEditbox = createEditbox(generalBackground,"addSkillEditbox",175,30,15,625,TOPLEFT,TOPLEFT,function(_) end,nil,TEXT_TYPE_NUMERIC)
+	local addSkillEditbox = createEditbox(generalBackground,"addSkillEditbox",175,30,15,625,TOPLEFT,TOPLEFT,function(_) end,nil,TEXT_TYPE_NUMERIC,"Skills")
 	addSkillEditbox.Update = function()
 
 	end
@@ -1234,14 +1258,14 @@ function HT_Settings_initializeUI()
 		dropdown:updateDropdown()
 	end,"+",nil,nil)
 
-	local itemSetDropdown = createDropdown(generalBackground,"itemSetDropdown",175,32,235,655,TOPLEFT,TOPLEFT,CST.load.itemSets,HT_pickAnyElement(CST.load.itemSets),function(_) end,"Item Sets")
+	local itemSetDropdown = createDropdown(generalBackground,"itemSetDropdown",175,32,235,655,TOPLEFT,TOPLEFT,CST.load.itemSets,HT_pickAnyElement(CST.load.itemSets),function(_) end)
 	itemSetDropdown.Update = function()
 		itemSetDropdown.choices = CST.load.itemSets
 		itemSetDropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		itemSetDropdown:updateDropdown()
 	end
 
-	local addItemSetEditbox = createEditbox(generalBackground,"addItemSetEditbox",175,30,235,625,TOPLEFT,TOPLEFT,function(_) end)
+	local addItemSetEditbox = createEditbox(generalBackground,"addItemSetEditbox",175,30,235,625,TOPLEFT,TOPLEFT,function(_) end,nil,nil,"Item Sets")
 	addItemSetEditbox.Update = function()
 
 	end
@@ -1261,14 +1285,14 @@ function HT_Settings_initializeUI()
 		dropdown:updateDropdown()
 	end,"+",nil,nil)
 
-	local zoneDropdown = createDropdown(generalBackground,"zoneDropdown",175,32,235,535,TOPLEFT,TOPLEFT,CST.load.zones,HT_pickAnyElement(CST.load.zones),function(_) end,"Zones")
+	local zoneDropdown = createDropdown(generalBackground,"zoneDropdown",175,32,235,535,TOPLEFT,TOPLEFT,CST.load.zones,HT_pickAnyElement(CST.load.zones),function(_) end)
 	zoneDropdown.Update = function()
 		zoneDropdown.choices = CST.load.zones
 		zoneDropdown.selection = HT_pickAnyElement(CST.load.zones)
 		zoneDropdown:updateDropdown()
 	end
 
-	local addZoneEditbox = createEditbox(generalBackground,"addzoneEditbox",175,30,235,505,TOPLEFT,TOPLEFT,function(_) end)
+	local addZoneEditbox = createEditbox(generalBackground,"addzoneEditbox",175,30,235,505,TOPLEFT,TOPLEFT,function(_) end,nil,nil,"Zones")
 	addZoneEditbox.Update = function()
 
 	end
@@ -1289,13 +1313,13 @@ function HT_Settings_initializeUI()
 	end,"+",nil,nil)
 
 	generalBackground.Update = function()
-		local generalButton = selectedTrackerSettingsBackdrop:GetNamedChild("button11")
+		local generalButton = selectedTrackerSettingsBackdrop:GetNamedChild("button21")
 		if settingsVariables.currentRightSideEdit == "generalBackground" then
 			generalBackground:SetHidden(false)
-			generalButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
+			generalButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
 		else
 			generalBackground:SetHidden(true)
-			generalButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
+			generalButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 		end
 		generalNameEditbox:Update()
 		targetNumberDropdown:Update()
@@ -1459,18 +1483,19 @@ function HT_Settings_initializeUI()
 		CST.conditions[CSC] = nil
 		conditionsDropdown.choices = getKeysFromTable(CST.conditions)
 		conditionsDropdown.selection = HT_pickAnyKey(CST.conditions)
+		CSC = HT_pickAnyKey(CST.conditions)
 		conditionsDropdown:updateDropdown()
 		relocateLeftSide()
 	end,nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",false)
 
 	conditionBackground.Update = function()
-		local conditionButton = selectedTrackerSettingsBackdrop:GetNamedChild("button11")
+		local conditionButton = selectedTrackerSettingsBackdrop:GetNamedChild("button22")
 		if settingsVariables.currentRightSideEdit == "conditionBackground" then
 			conditionBackground:SetHidden(false)
-			conditionButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
+			conditionButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
 		else
 			conditionBackground:SetHidden(true)
-			conditionButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
+			conditionButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 		end
 		dropdownArg1:Update()
 		dropdownOperator:Update()
@@ -1499,10 +1524,14 @@ function HT_Settings_initializeUI()
 			["Get Effect Cooldown"] = false,
 			["Entering/Exiting Combat"] = true,
 		}
-		backgroundIdDropdown.choices = CST.events[CSE].arguments.Ids
-		backgroundIdDropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
+		if CSE ~= "none" then
+			backgroundIdDropdown.choices = CST.events[CSE].arguments.Ids
+			backgroundIdDropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
+			backgroundIdDropdown:SetHidden(visibilityConditions[CST.events[CSE].type])
+		else
+			backgroundIdDropdown:SetHidden(true)
+		end
 		backgroundIdDropdown:updateDropdown()
-		backgroundIdDropdown:SetHidden(visibilityConditions[CST.events[CSE].type])
 	end
 
 	local addIdEditbox = createEditbox(backgroundIdDropdown,"addIdEditbox",175,30,0,0,BOTTOM,TOP,function(_) end,nil,nil,"Ids")
@@ -1661,18 +1690,19 @@ function HT_Settings_initializeUI()
 		CST.events[CSE] = nil
 		backgroundIdDropdown.choices = getKeysFromTable(CST.events)
 		backgroundIdDropdown.selection = HT_pickAnyKey(CST.events)
+		CSE = HT_pickAnyKey(tracker.events)
 		backgroundIdDropdown:updateDropdown()
 		relocateLeftSide()
 	end,nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",false)
 
 	eventBackground.Update = function()
-		local eventButton = selectedTrackerSettingsBackdrop:GetNamedChild("button11")
+		local eventButton = selectedTrackerSettingsBackdrop:GetNamedChild("button12")
 		if settingsVariables.currentRightSideEdit == "eventBackground" then
 			eventBackground:SetHidden(false)
-			eventButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
+			eventButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
 		else
 			eventBackground:SetHidden(true)
-			eventButton.backdrop:SetEdgeColor(0.2, 0.7, 0.1, 1)
+			eventButton.backdrop:SetEdgeColor(0.7, 0.7, 0.6, 1)
 		end
 		backgroundIdDropdown:Update()
 		addIdEditbox:Update()

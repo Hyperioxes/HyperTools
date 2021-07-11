@@ -61,7 +61,8 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
 end
 
 function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, color, colorpickerFunction,labelText)
-    local colorpicker = WM:CreateControl("$(parent)" .. name, parent, CT_TEXTURE)
+    local control = WM:CreateControl("$(parent)" .. name, parent, CT_CONTROL)
+    local colorpicker = WM:CreateControl("$(parent)" .. name, control, CT_TEXTURE)
     colorpicker.color = color
     colorpicker:SetMouseEnabled(true)
     colorpicker:SetHandler("OnMouseUp", function(_, _, upInside)
@@ -83,10 +84,11 @@ function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnc
         end
     end)
     --colorpicker:SetNormalTexture("/esoui/art/actionbar/abilityframe64_up.dds")
-    colorpicker:SetAnchor(fromAnchor, parent, toAnchor, xOffset, yOffset)
+    control:SetAnchor(fromAnchor, parent, toAnchor, xOffset, yOffset)
+    colorpicker:SetAnchor(TOPLEFT, control, TOPLEFT, 0, 0)
     colorpicker:SetDimensions(sizeX, sizeY)
     colorpicker:SetColor(unpack(color))
-    local backdrop = WM:CreateControl("$(parent)backdrop" .. name, parent, CT_BACKDROP, 4)
+    local backdrop = WM:CreateControl("$(parent)backdrop" .. name, control, CT_BACKDROP, 4)
 
     backdrop:SetEdgeTexture("", 2, 2, 2)
     backdrop:SetCenterColor(0, 0, 0, 0)
@@ -95,8 +97,9 @@ function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnc
     backdrop:SetDimensions(sizeX, sizeY)
     colorpicker.backdrop = backdrop
     if labelText then
-        colorpicker.label = createLabel(colorpicker,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+        control.label = createLabel(control,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
     end
+    control.colorpicker = colorpicker
     return colorpicker
 end
 
