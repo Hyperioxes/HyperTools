@@ -19,11 +19,11 @@ local function DisplayGroupControl(number)
     return false
 end
 
-local function createProgressBar(parent, t)
+local function createProgressBar(parent, t, i)
 
     local container, bar, backdrop, label, icon, _, timer, stacks, iconOutline
 
-    if parent:GetNamedChild(t.name .. "_Progress Bar") then
+    if parent:GetNamedChild(t.name .. "_Progress Bar"..(i or "")) then
         container = parent:GetNamedChild(t.name .. "_Progress Bar")
         backdrop = container:GetNamedChild("backdrop")
         icon = container:GetNamedChild("icon")
@@ -34,7 +34,7 @@ local function createProgressBar(parent, t)
         iconOutline = icon:GetNamedChild("iconOutline")
 
     else
-        container = createContainer(parent, t.name .. "_Progress Bar", t.sizeX, t.sizeY, t.xOffset, t.yOffset, TOPLEFT, TOPLEFT)
+        container = createContainer(parent, t.name .. "_Progress Bar"..(i or ""), t.sizeX, t.sizeY, t.xOffset, t.yOffset, TOPLEFT, TOPLEFT)
         backdrop = WM:CreateControl("$(parent)backdrop", container, CT_BACKDROP, 4)
         icon = createTexture(container, "icon", t.sizeY - (t.outlineThickness * 2), t.sizeY - (t.outlineThickness * 2), 0, 0, CENTER, CENTER, t.icon)
         bar = createTexture(icon, "bar", t.sizeX - t.sizeY - t.outlineThickness, t.sizeY, t.outlineThickness, 0, LEFT, RIGHT)
@@ -106,9 +106,9 @@ local function createProgressBar(parent, t)
     local function Update(_, data, groupAnchor)
         if not container.delete then
             if HT_processLoad(data.load) then
-                EVENT_MANAGER:RegisterForUpdate("HT_ProgressBar" .. data.name, 100, Process)
+                EVENT_MANAGER:RegisterForUpdate("HT_ProgressBar" .. data.name .. (i or ""), 100, Process)
             else
-                EVENT_MANAGER:UnregisterForUpdate("HT_ProgressBar" .. data.name, 100)
+                EVENT_MANAGER:UnregisterForUpdate("HT_ProgressBar" .. data.name .. (i or ""), 100)
                 container:SetHidden(true)
             end
         end
@@ -204,7 +204,7 @@ local function createIconTracker(parent, t, i)
 
     local container, icon, background, animationTexture, timer, stacks, outline, cooldown
 
-    if parent:GetNamedChild(t.name .. "_Icon Tracker") then
+    if parent:GetNamedChild(t.name .. "_Icon Tracker"..(i or "")) then
         container = parent:GetNamedChild(t.name .. "_Icon Tracker")
         icon = container:GetNamedChild("icon")
         background = container:GetNamedChild("background")
@@ -214,7 +214,7 @@ local function createIconTracker(parent, t, i)
         outline = container:GetNamedChild("outline")
         cooldown = icon:GetNamedChild("cooldown")
     else
-        container = createContainer(parent, t.name .. "_Icon Tracker", t.sizeX, t.sizeY, t.xOffset, t.yOffset, TOPLEFT, TOPLEFT)
+        container = createContainer(parent, t.name .. "_Icon Tracker"..(i or ""), t.sizeX, t.sizeY, t.xOffset, t.yOffset, TOPLEFT, TOPLEFT)
         icon = createTexture(container, "icon", t.sizeX, t.sizeY, 1, 1, TOPLEFT, TOPLEFT, t.icon)
         background = WM:CreateControl("$(parent)background", container, CT_TEXTURE, 4)
         timer = createLabel(icon, "timer", t.sizeX, t.sizeY / 2, 0, 0, BOTTOM, BOTTOM, "0.0", 1, 1, t.font, t.fontSize, "thick-outline")

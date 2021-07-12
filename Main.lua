@@ -7,6 +7,7 @@ HT = {
     expiresAt = {},
     duration = {},
     stacks = {},
+    loadCheckOnCooldown = false,
 }
 
 function HT_adjustDataForNewestVersion(data)
@@ -79,31 +80,51 @@ function OnAddOnLoaded(_, addonName)
     --To improve performance, the "check" if tracker should be turned on happens on certain events (skill changed,
     --equipment changed, zone changed, boss changed) instead of every 100ms
     EVENT_MANAGER:RegisterForEvent(name, EVENT_SKILL_RESPEC_RESULT, function() --check when skill changed
-        for _, v in pairs(HTSV.trackers) do
-            if v.name ~= 'none' then
-                HT_findContainer(v):Update(v)
-            end
+        if not HT.loadCheckOnCooldown then
+            HT.loadCheckOnCooldown = true
+            zo_callLater(function()
+                for _, v in pairs(HTSV.trackers) do
+                    if v.name ~= 'none' then
+                        HT_findContainer(v):Update(v)
+                    end
+                end
+                HT.loadCheckOnCooldown = false end, 100)
         end
     end)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function() --check when skill changed
-        for _, v in pairs(HTSV.trackers) do
-            if v.name ~= 'none' then
-                HT_findContainer(v):Update(v)
-            end
+        if not HT.loadCheckOnCooldown then
+            HT.loadCheckOnCooldown = true
+            zo_callLater(function()
+                for _, v in pairs(HTSV.trackers) do
+                    if v.name ~= 'none' then
+                        HT_findContainer(v):Update(v)
+                    end
+                end
+                HT.loadCheckOnCooldown = false end, 100)
         end
     end)
     CALLBACK_MANAGER:RegisterCallback("OnWorldMapChanged", function() -- check when map changed
-        for _, v in pairs(HTSV.trackers) do
-            if v.name ~= 'none' then
-                HT_findContainer(v):Update(v)
-            end
+        if not HT.loadCheckOnCooldown then
+            HT.loadCheckOnCooldown = true
+            zo_callLater(function()
+                for _, v in pairs(HTSV.trackers) do
+                    if v.name ~= 'none' then
+                        HT_findContainer(v):Update(v)
+                    end
+                end
+                HT.loadCheckOnCooldown = false end, 100)
         end
     end)
     EVENT_MANAGER:RegisterForEvent(name, EVENT_BOSSES_CHANGED, function() --check when boss changed
-        for _, v in pairs(HTSV.trackers) do
-            if v.name ~= 'none' then
-                HT_findContainer(v):Update(v)
-            end
+        if not HT.loadCheckOnCooldown then
+            HT.loadCheckOnCooldown = true
+            zo_callLater(function()
+                for _, v in pairs(HTSV.trackers) do
+                    if v.name ~= 'none' then
+                        HT_findContainer(v):Update(v)
+                    end
+                end
+                HT.loadCheckOnCooldown = false end, 100)
         end
     end)
 
