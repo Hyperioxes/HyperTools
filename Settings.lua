@@ -824,7 +824,7 @@ function HT_Settings_initializeUI()
 
 	createButton(displayBackground,"button",200,30,250,145,TOPLEFT,TOPLEFT,function() 
 		CST.icon = GetAbilityIcon(autoTextureDropdown.selection or 0)
-		editbox:SetText(GetAbilityIcon(autoTextureDropdown.selection or 0))
+		displayEditbox:SetText(GetAbilityIcon(autoTextureDropdown.selection or 0))
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		relocateLeftSide()
 	end,"Auto-set texture",nil,true)
@@ -1244,18 +1244,18 @@ function HT_Settings_initializeUI()
 	end
 
 	createButton(generalBackground,"buttonDeleteSkill",30,30,190,655,TOPLEFT,TOPLEFT,function()
-		HT_removeElementFromTable(CST.load.skills,dropdown.selection)
-		dropdown.choices = CST.load.skills
-		dropdown.selection = HT_pickAnyElement(CST.load.skills)
-		dropdown:updateDropdown()
+		HT_removeElementFromTable(CST.load.skills,skillDropdown.selection)
+		skillDropdown.choices = CST.load.skills
+		skillDropdown.selection = HT_pickAnyElement(CST.load.skills)
+		skillDropdown:updateDropdown()
 	end, "-",nil,nil)
 
 	createButton(generalBackground,"buttonAddSkill",30,30,188,625,TOPLEFT,TOPLEFT,function()
-		table.insert(CST.load.skills,tonumber(editbox:GetText()))-- or GetAbilityIdFromName(editbox:GetText())))
-		editbox:SetText(nil)
-		dropdown.choices = CST.load.skills
-		dropdown.selection = HT_pickAnyElement(CST.load.skills)
-		dropdown:updateDropdown()
+		table.insert(CST.load.skills,tonumber(addSkillEditbox:GetText()))-- or GetAbilityIdFromName(editbox:GetText())))
+		addSkillEditbox:SetText(nil)
+		skillDropdown.choices = CST.load.skills
+		skillDropdown.selection = HT_pickAnyElement(CST.load.skills)
+		skillDropdown:updateDropdown()
 	end,"+",nil,nil)
 
 	local itemSetDropdown = createDropdown(generalBackground,"itemSetDropdown",175,32,235,655,TOPLEFT,TOPLEFT,CST.load.itemSets,HT_pickAnyElement(CST.load.itemSets),function(_) end)
@@ -1271,18 +1271,18 @@ function HT_Settings_initializeUI()
 	end
 
 	createButton(generalBackground,"buttonDeleteitemSet",30,30,410,655,TOPLEFT,TOPLEFT,function()
-		HT_removeElementFromTable(CST.load.itemSets,dropdown.selection)
-		dropdown.choices = CST.load.itemSets
-		dropdown.selection = HT_pickAnyElement(CST.load.itemSets)
-		dropdown:updateDropdown()
+		HT_removeElementFromTable(CST.load.itemSets,itemSetDropdown.selection)
+		itemSetDropdown.choices = CST.load.itemSets
+		itemSetDropdown.selection = HT_pickAnyElement(CST.load.itemSets)
+		itemSetDropdown:updateDropdown()
 	end, "-",nil,nil)
 
 	createButton(generalBackground,"buttonAdditemSet",30,30,408,625,TOPLEFT,TOPLEFT,function()
-		table.insert(CST.load.itemSets,editbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
-		editbox:SetText(nil)
-		dropdown.choices = CST.load.itemSets
-		dropdown.selection = HT_pickAnyElement(CST.load.itemSets)
-		dropdown:updateDropdown()
+		table.insert(CST.load.itemSets,addItemSetEditbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
+		addItemSetEditbox:SetText(nil)
+		itemSetDropdown.choices = CST.load.itemSets
+		itemSetDropdown.selection = HT_pickAnyElement(CST.load.itemSets)
+		itemSetDropdown:updateDropdown()
 	end,"+",nil,nil)
 
 	local zoneDropdown = createDropdown(generalBackground,"zoneDropdown",175,32,235,535,TOPLEFT,TOPLEFT,CST.load.zones,HT_pickAnyElement(CST.load.zones),function(_) end)
@@ -1298,18 +1298,18 @@ function HT_Settings_initializeUI()
 	end
 
 	createButton(generalBackground,"buttonDeletezone",30,30,410,535,TOPLEFT,TOPLEFT,function()
-		HT_removeElementFromTable(CST.load.zones,dropdown.selection)
-		dropdown.choices = CST.load.zones
-		dropdown.selection = HT_pickAnyElement(CST.load.zones)
-		dropdown:updateDropdown()
+		HT_removeElementFromTable(CST.load.zones,zoneDropdown.selection)
+		zoneDropdown.choices = CST.load.zones
+		zoneDropdown.selection = HT_pickAnyElement(CST.load.zones)
+		zoneDropdown:updateDropdown()
 	end, "-",nil,nil)
 
 	createButton(generalBackground,"buttonAddzone",30,30,408,505,TOPLEFT,TOPLEFT,function()
-		table.insert(CST.load.zones,editbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
-		editbox:SetText(nil)
-		dropdown.choices = CST.load.zones
-		dropdown.selection = HT_pickAnyElement(CST.load.zones)
-		dropdown:updateDropdown()
+		table.insert(CST.load.zones,addZoneEditbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
+		addZoneEditbox:SetText(nil)
+		zoneDropdown.choices = CST.load.zones
+		zoneDropdown.selection = HT_pickAnyElement(CST.load.zones)
+		zoneDropdown:updateDropdown()
 	end,"+",nil,nil)
 
 	generalBackground.Update = function()
@@ -1541,7 +1541,7 @@ function HT_Settings_initializeUI()
 
 	createButton(backgroundIdDropdown,"buttonDeleteID",30,30,0,0,LEFT,RIGHT,function()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		HT_removeElementFromTable(CST.events[CSE].arguments.Ids,dropdown.selection)
+		HT_removeElementFromTable(CST.events[CSE].arguments.Ids,backgroundIdDropdown.selection)
 		backgroundIdDropdown.choices = CST.events[CSE].arguments.Ids
 		backgroundIdDropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		backgroundIdDropdown:updateDropdown()
@@ -1549,7 +1549,7 @@ function HT_Settings_initializeUI()
 	end, nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",nil)
 
 	createButton(addIdEditbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
-		table.insert(CST.events[CSE].arguments.Ids,(tonumber(editbox:GetText()) or GetAbilityIdFromName(editbox:GetText())))
+		table.insert(CST.events[CSE].arguments.Ids,(tonumber(addIdEditbox:GetText()) or GetAbilityIdFromName(addIdEditbox:GetText())))
 		backgroundIdDropdown.choices = CST.events[CSE].arguments.Ids
 		backgroundIdDropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		backgroundIdDropdown:updateDropdown()
