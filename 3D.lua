@@ -26,7 +26,7 @@ end
 function UpdateForUnit(i, camMatrixInv, screenX, screenY)
 
     local _, worldX, worldY, worldZ = GetUnitRawWorldPosition("group" .. i)
-
+    local PworldX, PworldY, PworldZ = GuiRender3DPositionToWorldPosition(RenderSpace:Get3DRenderSpaceOrigin())
     local mtx = matrix:new(1, 4, 0)
 
     worldY = worldY + 200
@@ -49,6 +49,7 @@ function UpdateForUnit(i, camMatrixInv, screenX, screenY)
     local y = -mtx[1][2] * UIUnitsPerWorldUnitY
     local c = HT_3D:GetNamedChild(i)
     c:SetAnchor(CENTER, HT_3D, CENTER, x, y)
+    HT.groupDistance[i] = math.sqrt(((worldX-PworldX)^2)+((worldY-PworldY)^2)+((worldZ-PworldZ)^2))
     return false
 end
 

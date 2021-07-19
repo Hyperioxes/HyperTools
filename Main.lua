@@ -3,11 +3,12 @@ HT = {
     author = "Hyperioxes",
     color = "DDFFEE",
     menuName = "HyperTools",
-    version = "0.9",
+    version = "0.9a",
     expiresAt = {},
     duration = {},
     stacks = {},
     loadCheckOnCooldown = false,
+    groupDistance = {},
 }
 
 function HT_adjustDataForNewestVersion(data)

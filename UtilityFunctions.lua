@@ -49,7 +49,7 @@ function HT_findContainer(tracker, i)
     if tracker.type == "Group Member" and i then
         return HT_findContainer(HT_getTrackerFromName(tracker.parent, HTSV.trackers), i):GetNamedChild(tracker.name .. "_Group" .. i)
     else
-        return HT_findContainer(HT_getTrackerFromName(tracker.parent, HTSV.trackers), i):GetNamedChild(tracker.name .. "_" .. tracker.type)
+        return HT_findContainer(HT_getTrackerFromName(tracker.parent, HTSV.trackers), i):GetNamedChild(tracker.name .. "_" .. tracker.type..(i or ""))
     end
 end
 

@@ -718,7 +718,7 @@ function HT_Settings_initializeUI()
 	end
 
 	createButton(newImportBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
-		local importString = nameEditbox:GetText()
+		local importString = nameEditboxImport:GetText()
 		if importString then
 			importString = string.sub(importString,2,#importString-1)
 			local importedTable = importFromString(importString)
@@ -1017,7 +1017,7 @@ function HT_Settings_initializeUI()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.xOffset,TEXT_TYPE_NUMERIC,"X position")
 	positionXEditbox.Update = function()
-		positionXEditbox:SetText(math.floor(CST.sizeX))
+		positionXEditbox:SetText(math.floor(CST.xOffset))
 	end
 
 	local positionYEditbox = createEditbox(displayBackground,"positionYEditbox",200,30,250,565,TOPLEFT,TOPLEFT,function(thisEditbox)
@@ -1026,7 +1026,7 @@ function HT_Settings_initializeUI()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.yOffset,TEXT_TYPE_NUMERIC,"Y position")
 	positionYEditbox.Update = function()
-		positionYEditbox:SetText(math.floor(CST.sizeY))
+		positionYEditbox:SetText(math.floor(CST.yOffset))
 	end
 
 	local sizeXEditbox = createEditbox(displayBackground,"sizeXEditbox",200,30,15,615,TOPLEFT,TOPLEFT,function(thisEditbox)
@@ -1035,7 +1035,7 @@ function HT_Settings_initializeUI()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.sizeX,TEXT_TYPE_NUMERIC,"Width")
 	sizeXEditbox.Update = function()
-		sizeXEditbox:SetText(math.floor(CST.xOffset))
+		sizeXEditbox:SetText(math.floor(CST.sizeX))
 	end
 
 	local sizeYEditbox = createEditbox(displayBackground,"sizeYEditbox",200,30,250,615,TOPLEFT,TOPLEFT,function(thisEditbox)
@@ -1044,7 +1044,7 @@ function HT_Settings_initializeUI()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.sizeY,TEXT_TYPE_NUMERIC,"Height")
 	sizeYEditbox.Update = function()
-		sizeYEditbox:SetText(math.floor(CST.yOffset))
+		sizeYEditbox:SetText(math.floor(CST.sizeY))
 	end
 	
 	local outlineThicknessDropdown = createDropdown(displayBackground,"outlineThicknessDropdown",200,30,15,665,TOPLEFT,TOPLEFT,{1,2,4,8,16},CST.outlineThickness,function(selection)
@@ -1164,7 +1164,8 @@ function HT_Settings_initializeUI()
 	createTexture(generalBackground,"edge4",165,2,330,300,TOPLEFT,TOPLEFT,"")
 	
 	local neverCheckbox = createCheckbox(generalBackground,"neverCheckbox", 30,30,15,340,TOPLEFT,TOPLEFT,CST.load.never,function(arg)
-	CST.load.never = arg
+		CST.load.never = arg
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,"Never")
 	neverCheckbox.UpdateCheckbox = function()
 		neverCheckbox:Update(CST.load.never)
@@ -1172,13 +1173,15 @@ function HT_Settings_initializeUI()
 
 	local alwaysCheckbox = createCheckbox(generalBackground,"alwaysCheckbox", 30,30,115,340,TOPLEFT,TOPLEFT,CST.load.always,function(arg)
 		CST.load.always = arg
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,"Always")
 	alwaysCheckbox.UpdateCheckbox = function()
 		alwaysCheckbox:Update(CST.load.always)
 	end
 
 	local combatCheckbox = createCheckbox(generalBackground,"combatCheckbox", 30,30,235,340,TOPLEFT,TOPLEFT,CST.load.inCombat,function(arg)
-	CST.load.inCombat = arg
+		CST.load.inCombat = arg
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,"In Combat")
 	combatCheckbox.UpdateCheckbox = function()
 		combatCheckbox:Update(CST.load.inCombat)
@@ -1187,6 +1190,7 @@ function HT_Settings_initializeUI()
 	local classDropdown = createDropdown(generalBackground,"classDropdown",200,30,15,565,TOPLEFT,TOPLEFT,{"Any","Dragonknight","Nightblade","Sorcerer","Templar","Warden","Necromancer"},CST.load.class,function(selection)
 		if CST.name ~= "none" then
 			CST.load.class = selection
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end,"Class")
 	classDropdown.Update = function()
@@ -1197,6 +1201,7 @@ function HT_Settings_initializeUI()
 	local roleDropdown = createDropdown(generalBackground,"roleDropdown",200,30,15,505,TOPLEFT,TOPLEFT,{"Any","Damage Dealer","Tank","Healer"},IdToRole[CST.load.role],function(selection)
 		if CST.name ~= "none" then
 			CST.load.role = roleToId[selection]
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end,"Role")
 	roleDropdown.Update = function()
@@ -1221,6 +1226,7 @@ function HT_Settings_initializeUI()
 		bossDropdown.choices = CST.load.bosses
 		bossDropdown.selection = HT_pickAnyElement(CST.load.bosses)
 		bossDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end, "-",nil,nil)
 
 	createButton(generalBackground,"buttonAddBoss",30,30,188,405,TOPLEFT,TOPLEFT,function()
@@ -1229,6 +1235,7 @@ function HT_Settings_initializeUI()
 		bossDropdown.choices = CST.load.bosses
 		bossDropdown.selection = HT_pickAnyElement(CST.load.bosses)
 		bossDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,"+",nil,nil)
 
 	local skillDropdown = createDropdown(generalBackground,"skillDropdown",175,32,15,655,TOPLEFT,TOPLEFT,CST.load.skills,HT_pickAnyElement(CST.load.skills),function(_) end)
@@ -1248,6 +1255,7 @@ function HT_Settings_initializeUI()
 		skillDropdown.choices = CST.load.skills
 		skillDropdown.selection = HT_pickAnyElement(CST.load.skills)
 		skillDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end, "-",nil,nil)
 
 	createButton(generalBackground,"buttonAddSkill",30,30,188,625,TOPLEFT,TOPLEFT,function()
@@ -1256,6 +1264,7 @@ function HT_Settings_initializeUI()
 		skillDropdown.choices = CST.load.skills
 		skillDropdown.selection = HT_pickAnyElement(CST.load.skills)
 		skillDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,"+",nil,nil)
 
 	local itemSetDropdown = createDropdown(generalBackground,"itemSetDropdown",175,32,235,655,TOPLEFT,TOPLEFT,CST.load.itemSets,HT_pickAnyElement(CST.load.itemSets),function(_) end)
@@ -1275,6 +1284,7 @@ function HT_Settings_initializeUI()
 		itemSetDropdown.choices = CST.load.itemSets
 		itemSetDropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		itemSetDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end, "-",nil,nil)
 
 	createButton(generalBackground,"buttonAdditemSet",30,30,408,625,TOPLEFT,TOPLEFT,function()
@@ -1283,6 +1293,7 @@ function HT_Settings_initializeUI()
 		itemSetDropdown.choices = CST.load.itemSets
 		itemSetDropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		itemSetDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,"+",nil,nil)
 
 	local zoneDropdown = createDropdown(generalBackground,"zoneDropdown",175,32,235,535,TOPLEFT,TOPLEFT,CST.load.zones,HT_pickAnyElement(CST.load.zones),function(_) end)
@@ -1302,6 +1313,7 @@ function HT_Settings_initializeUI()
 		zoneDropdown.choices = CST.load.zones
 		zoneDropdown.selection = HT_pickAnyElement(CST.load.zones)
 		zoneDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end, "-",nil,nil)
 
 	createButton(generalBackground,"buttonAddzone",30,30,408,505,TOPLEFT,TOPLEFT,function()
@@ -1310,6 +1322,7 @@ function HT_Settings_initializeUI()
 		zoneDropdown.choices = CST.load.zones
 		zoneDropdown.selection = HT_pickAnyElement(CST.load.zones)
 		zoneDropdown:updateDropdown()
+		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,"+",nil,nil)
 
 	generalBackground.Update = function()

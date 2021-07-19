@@ -55,7 +55,7 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
     end
     checkbox.Update = Update
     if labelText then
-        checkbox.label = createLabel(checkbox,"label",400,60,0,0,LEFT,RIGHT,labelText,0)
+        checkbox.label = createLabel(checkbox,"label",100,60,0,0,LEFT,RIGHT,labelText,0)
     end
     return checkbox
 end

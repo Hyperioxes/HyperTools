@@ -24,7 +24,7 @@ local function createProgressBar(parent, t, i)
     local container, bar, backdrop, label, icon, _, timer, stacks, iconOutline
 
     if parent:GetNamedChild(t.name .. "_Progress Bar"..(i or "")) then
-        container = parent:GetNamedChild(t.name .. "_Progress Bar")
+        container = parent:GetNamedChild(t.name .. "_Progress Bar"..(i or ""))
         backdrop = container:GetNamedChild("backdrop")
         icon = container:GetNamedChild("icon")
         bar = icon:GetNamedChild("bar")
@@ -56,7 +56,7 @@ local function createProgressBar(parent, t, i)
     container:SetMovable(true)
     container:SetMouseEnabled(true)
     container.delete = false
-    local function Process(_, targetOverride)
+    local function Process()
         local override = {
             text = t.text,
             barColor = t.barColor,
@@ -66,10 +66,10 @@ local function createProgressBar(parent, t, i)
             backgroundColor = t.backgroundColor,
             outlineColor = t.outlineColor,
             show = true,
-            targetNumber = targetOverride or t.targetNumber,
+            targetNumber = i or t.targetNumber,
             target = t.target,
         }
-        if targetOverride then
+        if i then
             override.target = "Group"
         end
         for _, condition in pairs(t.conditions) do
@@ -78,8 +78,8 @@ local function createProgressBar(parent, t, i)
             end
         end
 
-        if targetOverride then
-            container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(targetOverride))
+        if i then
+            container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(i))
         else
             container:SetHidden((not override.show and not t.load.always))
         end
@@ -94,7 +94,6 @@ local function createProgressBar(parent, t, i)
         else
             bar:SetDimensions(barX * (remainingTime / duration), barY)
         end
-        --d(remainingTime)
         bar:SetColor(unpack(override.barColor))
         timer:SetText(HT_getDecimals(remainingTime, t.decimals))
         label:SetText(override.text)
@@ -131,7 +130,7 @@ local function createProgressBar(parent, t, i)
         backdrop:SetEdgeTexture("", data.outlineThickness, data.outlineThickness)
         iconOutline:SetDimensions(data.outlineThickness, data.sizeY)
         iconOutline:SetColor(unpack(data.outlineColor))
-        bar:SetColor(unpack(data.barColor))
+        --bar:SetColor(unpack(data.barColor))
         label:SetDimensions(data.sizeX - data.sizeY, data.sizeY)
         label:SetText(data.text)
         label:SetFont(string.format("$(%s)|$(KB_%s)|%s", data.font, data.fontSize, data.fontWeight))
@@ -187,7 +186,7 @@ local function createProgressBar(parent, t, i)
 
     local function Delete(self)
         self:UnregisterEvents()
-        EVENT_MANAGER:UnregisterForUpdate("HT_ProgressBar" .. t.name, 100)
+        EVENT_MANAGER:UnregisterForUpdate("HT_ProgressBar" .. t.name..(i or ""), 100)
         container.delete = true
         self:SetHidden(true)
     end
@@ -202,10 +201,10 @@ end
 
 local function createIconTracker(parent, t, i)
 
-    local container, icon, background, animationTexture, timer, stacks, outline, cooldown
+    local container, icon, background, animationTexture, timer, stacks, outline, cooldown, isChildrenOfGroupMember
 
     if parent:GetNamedChild(t.name .. "_Icon Tracker"..(i or "")) then
-        container = parent:GetNamedChild(t.name .. "_Icon Tracker")
+        container = parent:GetNamedChild(t.name .. "_Icon Tracker"..(i or ""))
         icon = container:GetNamedChild("icon")
         background = container:GetNamedChild("background")
         timer = icon:GetNamedChild("timer")
@@ -263,7 +262,7 @@ local function createIconTracker(parent, t, i)
     container:SetMovable(true)
     container:SetMouseEnabled(true)
 
-    local function Process(_, targetOverride)
+    local function Process()
         local override = {
             text = t.text,
             barColor = t.barColor,
@@ -273,11 +272,11 @@ local function createIconTracker(parent, t, i)
             backgroundColor = t.backgroundColor,
             outlineColor = t.outlineColor,
             show = true,
-            targetNumber = targetOverride or t.targetNumber,
+            targetNumber = i or t.targetNumber,
             showProc = false,
             target = t.target
         }
-        if targetOverride then
+        if i then
             override.target = "Group"
         end
         for _, condition in pairs(t.conditions) do
@@ -285,8 +284,8 @@ local function createIconTracker(parent, t, i)
                 conditionResults[condition.result](override, condition.resultArguments)
             end
         end
-        if targetOverride then
-            container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(targetOverride))
+        if i then
+            container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(i))
         else
             container:SetHidden((not override.show and not t.load.always))
         end
@@ -368,7 +367,7 @@ local function createIconTracker(parent, t, i)
 
     local function Delete(self)
         self:UnregisterEvents()
-        EVENT_MANAGER:UnregisterForUpdate("HT_IconTracker" .. t.name, 100)
+        EVENT_MANAGER:UnregisterForUpdate("HT_IconTracker" .. t.name..(i or ""), 100)
         self:SetHidden(true)
     end
     container.Delete = Delete
@@ -379,7 +378,6 @@ end
 local function createGroup(parent, t, i)
 
     local container, backdrop
-
     if parent:GetNamedChild(t.name .. "_Group" .. (i or "")) then
         container = parent:GetNamedChild(t.name .. "_Group" .. (i or ""))
         backdrop = container:GetNamedChild("backdrop")
@@ -407,10 +405,10 @@ local function createGroup(parent, t, i)
     container:SetMovable(true)
     container:SetMouseEnabled(true)
     for _, childName in pairs(t.children) do
-        initializeTrackerFunctions[childName.type](container, childName)
+        initializeTrackerFunctions[childName.type](container, childName,i)
     end
 
-    local function Process(_, targetOverride)
+    local function Process()
         local override = {
             text = t.text,
             barColor = t.barColor,
@@ -420,7 +418,7 @@ local function createGroup(parent, t, i)
             backgroundColor = t.backgroundColor,
             outlineColor = t.outlineColor,
             show = true,
-            targetNumber = targetOverride or i or t.targetNumber
+            targetNumber = i or t.targetNumber
         }
         for _, condition in pairs(t.conditions) do
             if operators[condition.operator](conditionArgs1[condition.arg1](t, override), condition.arg2) then
@@ -449,10 +447,10 @@ local function createGroup(parent, t, i)
     end
     local function Update(_, data, groupAnchor)
         for _, childTracker in pairs(data.children) do
-            if not HT_findContainer(childTracker, i) then
-                initializeTrackerFunctions[childTracker.type](container, childTracker)
+            if not HT_findContainer(childTracker, (i or "")) then
+                initializeTrackerFunctions[childTracker.type](container, childTracker,i)
             end
-            HT_findContainer(childTracker, i):Update(childTracker)
+            HT_findContainer(childTracker, (i or "")):Update(childTracker)
         end
         if not container.delete then
             if HT_processLoad(data.load) then
