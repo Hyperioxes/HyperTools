@@ -1,7 +1,7 @@
 local WM = GetWindowManager()
 
 local importEditboxUpdated = false
-
+local trackerToDelete = {}
 local settingsVariables = {
 	--currentLeftSide = "createNewTracker",
 	currentRightSide = "newTrackersBackdrop",
@@ -256,19 +256,13 @@ local function createLeftSidePanelButton(parent,counter,t)
 			settingsVariables.currentRightSideEdit = "displayBackground"
 			updateUI()
 			relocateLeftSide()
-			
-			
-			
 		end,nil,nil,true)
+
 		createButton(button,"deleteButton",23,23,-2,2,TOPRIGHT,TOPRIGHT,function()
-			deleteTracker(tracker)
-			relocateLeftSide()
-			
-			
-			
-			
-			button:SetHidden(true)
+			trackerToDelete = tracker
+			ZO_Dialogs_ShowDialog("HT_ConfirmDelete")
 		end,nil,"/esoui/art/buttons/decline_up.dds",true)
+
 		local moveButton = createButton(button,"moveButton",23,23,-23,2,TOPRIGHT,TOPRIGHT,function()
 			local holdCopy = HT_deepcopy(tracker)
 			holdCopy.parent = HT_getTrackerFromName(HT_getTrackerFromName(t.name,HTSV.trackers).parent,HTSV.trackers).parent
@@ -491,6 +485,27 @@ function HT_Settings_initializeUI()
 		},
 		setup = function()end,
   }
+	ESO_Dialogs["HT_ConfirmDelete"] = {
+		canQueue = true,
+		uniqueIdentifier = "HT_ConfirmDelete",
+		title = {text = "Delete Warning"},
+		mainText = {text = "Are you sure you want to delete this tracker?"},
+		buttons = {
+			[1] = {
+				text = "Delete",
+				callback = function()
+					deleteTracker(trackerToDelete)
+					relocateLeftSide()
+					HT_Settings:GetNamedChild("background"):GetNamedChild("eTB"):GetNamedChild("button"..trackerToDelete.parent..trackerToDelete.name):SetHidden(true)
+				end,
+			},
+			[2] = {
+				text = "Close",
+				callback = function() end,
+			},
+		},
+		setup = function()end,
+	}
 
 	local HT_Settings = WM:CreateTopLevelWindow("HT_Settings")
 	HT_Settings:SetResizeToFitDescendents(true)

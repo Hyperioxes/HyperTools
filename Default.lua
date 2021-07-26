@@ -1,4 +1,22 @@
 HT_trackers = {
+    filterOptions = {
+        sourceName = nil,
+        targetName = nil,
+        abilityId = nil,
+        abilityName = nil,
+        result = nil,
+        hitValue = nil,
+        powerType = nil,
+        damageType = nil,
+        sourceNameVisible = true,
+        targetNameVisible = true,
+        abilityIdVisible = true,
+        abilityNameVisible = true,
+        resultVisible = true,
+        hitValueVisible = true,
+        powerTypeVisible = false,
+        damageTypeVisible = false,
+    },
     trackers = {
         ["none"] = {
             type = "Progress Tracker",

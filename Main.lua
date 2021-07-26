@@ -11,6 +11,8 @@ HT = {
     groupDistance = {},
 }
 
+_G["HyperTools"] = {}
+
 function HT_adjustDataForNewestVersion(data)
     local function searchThroughTable(t)
         for _, event in pairs(t.events) do
@@ -59,7 +61,6 @@ function HT_adjustDataForNewestVersion(data)
 
 
 end
-
 function OnAddOnLoaded(_, addonName)
     if addonName ~= HT.name then
         return
@@ -75,6 +76,7 @@ function OnAddOnLoaded(_, addonName)
     end
 
     HT_Settings_initializeUI()
+    HT_InitializeEventViewerSettings()
     HT_Initialize3D()
     HT_InitializeGlobalControl()
 
@@ -128,6 +130,16 @@ function OnAddOnLoaded(_, addonName)
                 HT.loadCheckOnCooldown = false end, 100)
         end
     end)
+
+    ZO_ActiveSkillProgressionData["SetKeyboardTooltip"] = function(self,tooltip, showSkillPointCost, showUpgradeText, showAdvised, showBadMorph, overrideRank, overrideAbilityId)
+        local skillType, skillLineIndex, skillIndex = self:GetIndices()
+        local isPurchased = self:GetSkillData():GetPointAllocator():IsPurchased()
+        local numAvailableSkillPoints = SKILL_POINT_ALLOCATION_MANAGER:GetAvailableSkillPoints()
+        tooltip:SetActiveSkill(skillType, skillLineIndex, skillIndex, self:GetMorphSlot(), isPurchased, self:IsAdvised(), self:IsBadMorph(), numAvailableSkillPoints, showSkillPointCost, showUpgradeText, showAdvised, showBadMorph, overrideRank, overrideAbilityId)
+        local abilityId = GetSpecificSkillAbilityInfo(skillType, skillLineIndex, skillIndex, self:GetMorphSlot(), 4)
+        SetTooltipText(tooltip, "Ability Id: "..abilityId,1,1,1) --FIXME shows only rank 4
+    end
+
 
 end
 

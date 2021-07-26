@@ -7,7 +7,7 @@ function createButton(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, 
     button:SetVerticalAlignment(TEXT_ALIGN_CENTER)
     button:SetFont("ZoFontGameSmall")
     button:SetHandler("OnMouseDown", function(_, _, ctrl, alt, shift)
-        buttonFunction(ctrl, alt, shift)
+        buttonFunction(ctrl, alt, shift,button)
     end)
     button:SetNormalTexture(textureOverride or "")
     button:SetAnchor(fromAnchor, parent, toAnchor, xOffset, yOffset)

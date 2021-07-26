@@ -17,6 +17,7 @@ Main.lua
 Default.lua
 Trackers.lua
 Settings.lua
+EventViewer.lua
 GlobalControl.lua
 Events.lua
 Controls.lua
