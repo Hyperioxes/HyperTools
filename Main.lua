@@ -3,7 +3,7 @@ HT = {
     author = "Hyperioxes",
     color = "DDFFEE",
     menuName = "HyperTools",
-    version = "0.9a",
+    version = "0.10",
     expiresAt = {},
     duration = {},
     stacks = {},
@@ -77,6 +77,7 @@ function OnAddOnLoaded(_, addonName)
 
     HT_Settings_initializeUI()
     HT_InitializeEventViewerSettings()
+    HT_InitializeEffectViewerSettings()
     HT_Initialize3D()
     HT_InitializeGlobalControl()
 
