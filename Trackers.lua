@@ -305,6 +305,7 @@ local function createIconTracker(parent, t, i)
         icon:SetColor(unpack(override.barColor))
         animationTexture:SetHidden(not override.showProc)
         background:SetColor(unpack(override.backgroundColor))
+        background:SetTexture("")
         outline:SetEdgeColor(unpack(override.outlineColor))
     end
 

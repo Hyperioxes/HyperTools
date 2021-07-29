@@ -1458,7 +1458,7 @@ function HT_Settings_initializeUI()
 			["Show Proc"] = true,
 		}
 		if CSC == "none" then
-			resultColorpicker:SetHidden(true)
+			resultCheckbox:SetHidden(true)
 		else
 			resultCheckbox:SetHidden(visibilityConditions[CST.conditions[CSC].result])
 		end
@@ -1483,7 +1483,7 @@ function HT_Settings_initializeUI()
 	dropdownOperator.selection = CST.conditions[CSC].operator
 	dropdownOperator:updateDropdown()
 	editboxArg2:SetText(CST.conditions[CSC].arg2)
-	resultColorpicker:SetColor(unpack(CST.conditions[CSC].resultArguments))
+	resultColorpicker:Update()
 	dropdownResult.selection = CST.conditions[CSC].result
 	dropdownResult:updateDropdown()
 	end,"Select/Add condition")
