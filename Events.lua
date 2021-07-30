@@ -1,5 +1,6 @@
 hyperToolsTracker = {}
 hyperToolsGlobal = {}
+hyperToolsCustomVariables = {}
 
 function HT_setDuration(duration)
     hyperToolsTracker.expiresAt[hyperToolsGlobal.targetName] = GetGameTimeSeconds() + duration
@@ -11,7 +12,7 @@ end
 
 local eventFunctions = {
     ["Get Effect Duration"] = function(name, ID, tracker, arguments)
-        EVENT_MANAGER:RegisterForEvent(name, EVENT_EFFECT_CHANGED, function(_, result, _, _, _, _, expireTime, stackCount, _, _, _, _, _, targetName)
+        EVENT_MANAGER:RegisterForEvent(name, EVENT_EFFECT_CHANGED, function(_, result, _, _, _, _, expireTime, stackCount, _, _, _, _, _, targetName,targetId)
             targetName = HT_removeGender(targetName)
             if not arguments.dontUpdateFromThisEvent then
                 if expireTime > (tracker.expiresAt[targetName] or 0) or (not arguments.overwriteShorterDuration) then
@@ -20,6 +21,8 @@ local eventFunctions = {
                     tracker.stacks[targetName] = stackCount
                 end
             end
+
+
 
             if arguments.luaCodeToExecute then
                 hyperToolsTracker = tracker
@@ -32,14 +35,16 @@ local eventFunctions = {
                 tracker = hyperToolsTracker
             end
         end)
-        EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, ID)
+        if ID ~= 0 then
+            EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, ID)
+        end
         if arguments.onlyYourCast then
             EVENT_MANAGER:AddFilterForEvent(name, EVENT_EFFECT_CHANGED, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, 1)
         end
     end,
     ["Get Effect Cooldown"] = function(name, ID, tracker, arguments)
         EVENT_MANAGER:RegisterForEvent(name, EVENT_COMBAT_EVENT, function(_, result, _, _, _,
-                                                                          _, sourceName, _, _, _, hitValue, _, _, _, _, _, _)
+                                                                          _, sourceName, _, targetName, _, hitValue, powerType, damageType, log, sourceUnitId, targetUnitId, abilityId)
             if not arguments.dontUpdateFromThisEvent then
                 tracker.duration[GetUnitName("player")] = arguments.cooldown
                 tracker.expiresAt[GetUnitName("player")] = arguments.cooldown + GetGameTimeSeconds()
@@ -56,7 +61,9 @@ local eventFunctions = {
             end
 
         end)
-        EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, ID)
+        if ID ~= 0 then
+            EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_ABILITY_ID, ID)
+        end
         if arguments.onlyYourCast then
             EVENT_MANAGER:AddFilterForEvent(name, EVENT_COMBAT_EVENT, REGISTER_FILTER_SOURCE_COMBAT_UNIT_TYPE, 1)
         end

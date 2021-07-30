@@ -1679,16 +1679,18 @@ function HT_Settings_initializeUI()
 	end
 
 	local eventsDropdown = createDropdown(eventBackground,"eventsDropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection)
-	CSE = selection
-	if CST.events[CSE].type == "Get Effect Cooldown" then
-		arg1Editbox:SetHidden(false)
-		arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
-	else
-		arg1Editbox:SetHidden(true)
-	end
-	eventTypeDropdown.selection = CST.events[CSE].type
-	eventTypeDropdown:updateDropdown()
+		CSE = selection
+		backgroundIdDropdown:Update()
+		if CST.events[CSE].type == "Get Effect Cooldown" then
+			arg1Editbox:SetHidden(false)
+			arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
+		else
+			arg1Editbox:SetHidden(true)
+		end
+		eventTypeDropdown.selection = CST.events[CSE].type
+		eventTypeDropdown:updateDropdown()
 	end,"Select/Add Event")
+
 	eventsDropdown.Update = function()
 		eventsDropdown.choices = getKeysFromTable(CST.events)
 		eventsDropdown.selection = HT_pickAnyKey(CST.events)
