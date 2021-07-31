@@ -1,6 +1,6 @@
 ## APIVersion: 100034
 ## Title: HyperTools
-## Version: 0.10
+## Version: 0.11
 ## Author: Hyperioxes
 ## Description: Tool for creating UI elements on your screen
 ## SavedVariables: HyperToolsSV

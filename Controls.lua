@@ -24,7 +24,7 @@ function createButton(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, 
     return button
 end
 
-function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, defaultValue, checkboxFunction,labelText)
+function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, defaultValue, checkboxFunction,labelText,labelLength)
     local checkbox = WM:CreateControl("$(parent)" .. name, parent, CT_TEXTURE)
     checkbox.data = defaultValue
     checkbox:SetMouseEnabled(true)
@@ -55,7 +55,7 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
     end
     checkbox.Update = Update
     if labelText then
-        checkbox.label = createLabel(checkbox,"label",100,60,0,0,LEFT,RIGHT,labelText,0)
+        checkbox.label = createLabel(checkbox,"label",labelLength or 100,60,0,0,LEFT,RIGHT,labelText,0)
     end
     return checkbox
 end
@@ -67,7 +67,7 @@ function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnc
     colorpicker:SetMouseEnabled(true)
     colorpicker:SetHandler("OnMouseUp", function(_, _, upInside)
         if upInside then
-            local red, green, blue, alpha = unpack(colorpicker.color)
+            local red, green, blue, alpha = colorpicker:GetColor()
             if IsInGamepadPreferredMode() then
                 COLOR_PICKER_GAMEPAD:Show(function(r, g, b, a)
                     colorpicker.color = { r, g, b, a }
@@ -88,8 +88,8 @@ function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnc
     colorpicker:SetAnchor(TOPLEFT, control, TOPLEFT, 0, 0)
     colorpicker:SetDimensions(sizeX, sizeY)
     colorpicker:SetColor(unpack(color))
-    local backdrop = WM:CreateControl("$(parent)backdrop" .. name, control, CT_BACKDROP, 4)
 
+    local backdrop = WM:CreateControl("$(parent)backdrop" .. name, control, CT_BACKDROP, 4)
     backdrop:SetEdgeTexture("", 2, 2, 2)
     backdrop:SetCenterColor(0, 0, 0, 0)
     backdrop:SetEdgeColor(1, 1, 1, 1)
@@ -99,6 +99,12 @@ function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnc
     if labelText then
         control.label = createLabel(control,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
     end
+    local function SetHiddenAlt(self,arg)
+        self:SetHidden(arg)
+        control:SetHidden(arg)
+    end
+
+    colorpicker.SetHiddenAlt = SetHiddenAlt
     control.colorpicker = colorpicker
     return colorpicker
 end
@@ -194,7 +200,7 @@ function createEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor,
     editbox:SetTextType(textType or TEXT_TYPE_ALL)
     editbox:SetMaxInputChars(30000)
     if labelText then
-        control.label = createLabel(control,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+        control.label = createLabel(control,"label",sizeX,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
     end
     return control
 end
@@ -239,7 +245,7 @@ function createMultilineEditbox(parent, name, sizeX, sizeY, xOffset, yOffset, fr
     editbox:SetTextType(textType or TEXT_TYPE_ALL)
     editbox:SetMaxInputChars(30000)
     if labelText then
-        control.label = createLabel(control,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+        control.label = createLabel(control,"label",sizeX,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
     end
     return control
 end

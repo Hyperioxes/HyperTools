@@ -246,7 +246,7 @@ local function createLeftSidePanelButton(parent,counter,t)
 				holdCopy.name = newName
 				getChildrenFromName(tracker.parent,HTSV.trackers)[newName] = holdCopy
 				if HT_getTrackerFromName(holdCopy.parent,HTSV.trackers).type ~= "Group Member" then
-					initializeTrackerFunctions[holdCopy.type](HT_findContainer(tracker),holdCopy)
+					initializeTrackerFunctions[holdCopy.type](HT_findContainer(HT_getTrackerFromName(holdCopy.parent,HTSV.trackers)),holdCopy)
 				end
 			end
 			CST = HT_getTrackerFromName(t.name,HTSV.trackers)
@@ -824,6 +824,7 @@ function HT_Settings_initializeUI()
 
 	local displayEditbox = createEditbox(displayBackground,"displayEditbox",475,30,15,90,TOPLEFT,TOPLEFT,function(thisEditbox)
 		CST.icon = thisEditbox:GetText()
+		eTB:GetNamedChild("button"..CST.parent..CST.name):GetNamedChild("icon"):SetTexture(CST.icon)
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.icon,nil,"Texture Path")
 	displayEditbox.Update = function()
@@ -847,11 +848,7 @@ function HT_Settings_initializeUI()
 	local fontDropdown = createDropdown(displayBackground,"fontDropdown",90,30,15,205,TOPLEFT,TOPLEFT,fonts,CST.font,function(selection)
 		if CST.name ~= "none" then
 			CST.font = selection
-			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then
-					HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers))
-			else
-				if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-			end
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end,"Font")
 	fontDropdown.Update = function()
@@ -1358,6 +1355,7 @@ function HT_Settings_initializeUI()
 		classDropdown:Update()
 		roleDropdown:Update()
 		zoneDropdown:Update()
+		bossDropdown:Update()
 		skillDropdown:Update()
 		itemSetDropdown:Update()
 	end
@@ -1434,9 +1432,9 @@ function HT_Settings_initializeUI()
 			["Show Proc"] = true,
 		}
 		if CSC == "none" then
-			resultColorpicker:SetHidden(true)
+			resultColorpicker:SetHiddenAlt(true)
 		else
-			resultColorpicker:SetHidden(visibilityConditions[CST.conditions[CSC].result])
+			resultColorpicker:SetHiddenAlt(visibilityConditions[CST.conditions[CSC].result])
 			resultColorpicker:SetColor(unpack(CST.conditions[CSC].resultArguments))
 		end
 	end
@@ -1465,9 +1463,14 @@ function HT_Settings_initializeUI()
 	end
 
 	local dropdownResult = createDropdown(conditionBackground,"dropdownResult",200,30,45,190,TOPLEFT,TOPLEFT,getKeysFromTable(conditionResults),CST.conditions[CSC].result,function(selection)
-	if CSC ~= "none" then
-		CST.conditions[CSC].result = selection
-	end
+		if CSC ~= "none" then
+			CST.conditions[CSC].result = selection
+		end
+		dropdownArg1:Update()
+		dropdownOperator:Update()
+		editboxArg2:Update()
+		resultColorpicker:Update()
+		resultCheckbox:UpdateCheckbox()
 	end,"Set Result")
 	dropdownResult.Update = function()
 		if CSC ~= "none" then
@@ -1477,15 +1480,13 @@ function HT_Settings_initializeUI()
 	end
 
 	local conditionsDropdown = createDropdown(conditionBackground,"conditionsDropdown",200,30,45,80,TOPLEFT,TOPLEFT,getKeysFromTable(CST.conditions),CSC,function(selection)
-	CSC = selection
-	dropdownArg1.selection = CST.conditions[CSC].arg1
-	dropdownArg1:updateDropdown()
-	dropdownOperator.selection = CST.conditions[CSC].operator
-	dropdownOperator:updateDropdown()
-	editboxArg2:SetText(CST.conditions[CSC].arg2)
-	resultColorpicker:Update()
-	dropdownResult.selection = CST.conditions[CSC].result
-	dropdownResult:updateDropdown()
+		CSC = selection
+		dropdownArg1:Update()
+		dropdownOperator:Update()
+		editboxArg2:Update()
+		resultColorpicker:Update()
+		resultCheckbox:UpdateCheckbox()
+		dropdownResult:Update()
 	end,"Select/Add condition")
 	conditionsDropdown.Update = function()
 		conditionsDropdown.choices = getKeysFromTable(CST.conditions)
@@ -1617,7 +1618,7 @@ function HT_Settings_initializeUI()
 	if CST ~= "none" then
 		CST.events[CSE].arguments.overwriteShorterDuration = arg
 	end
-	end,"Don't overwrite effects when shorter duration is applied")
+	end,"Don't overwrite effects when shorter duration is applied",400)
 	overwriteShorterDurationCheckbox.UpdateCheckbox = function()
 		local visibilityConditions = {
 			["Get Effect Duration"] = false,
@@ -1632,7 +1633,7 @@ function HT_Settings_initializeUI()
 	if CST ~= "none" then
 		CST.events[CSE].arguments.dontUpdateFromThisEvent = arg
 	end
-	end,"Don't update duration and stacks from this event (ignore original code and run only custom one)")
+	end,"Don't update duration and stacks from this event (ignore original code and run only custom one)",300)
 	dontUpdateFromThisEventCheckbox.UpdateCheckbox = function()
 		dontUpdateFromThisEventCheckbox:Update(CST.events[CSE].arguments.dontUpdateFromThisEvent)
 		local visibilityConditions = {
@@ -1681,14 +1682,13 @@ function HT_Settings_initializeUI()
 	local eventsDropdown = createDropdown(eventBackground,"eventsDropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection)
 		CSE = selection
 		backgroundIdDropdown:Update()
-		if CST.events[CSE].type == "Get Effect Cooldown" then
-			arg1Editbox:SetHidden(false)
-			arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
-		else
-			arg1Editbox:SetHidden(true)
-		end
-		eventTypeDropdown.selection = CST.events[CSE].type
-		eventTypeDropdown:updateDropdown()
+		addIdEditbox:Update()
+		arg1Editbox:Update()
+		onlyYourCastCheckbox:UpdateCheckbox()
+		overwriteShorterDurationCheckbox:UpdateCheckbox()
+		dontUpdateFromThisEventCheckbox:UpdateCheckbox()
+		eventTypeDropdown:Update()
+		luaCodeEditbox:Update()
 	end,"Select/Add Event")
 
 	eventsDropdown.Update = function()
@@ -1708,9 +1708,15 @@ function HT_Settings_initializeUI()
 		Ids = {},
 	}
 	})
-		backgroundIdDropdown.choices = getKeysFromTable(CST.events)
-		backgroundIdDropdown.selection = CSC
-		backgroundIdDropdown:updateDropdown()
+		backgroundIdDropdown:Update()
+		addIdEditbox:Update()
+		arg1Editbox:Update()
+		onlyYourCastCheckbox:UpdateCheckbox()
+		overwriteShorterDurationCheckbox:UpdateCheckbox()
+		dontUpdateFromThisEventCheckbox:UpdateCheckbox()
+		eventTypeDropdown:Update()
+		luaCodeEditbox:Update()
+		eventsDropdown:Update()
 	relocateLeftSide()
 	end,nil,"esoui/art/buttons/plus_up.dds",false)
 
@@ -1718,10 +1724,16 @@ function HT_Settings_initializeUI()
 
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
 		CST.events[CSE] = nil
-		backgroundIdDropdown.choices = getKeysFromTable(CST.events)
-		backgroundIdDropdown.selection = HT_pickAnyKey(CST.events)
-		CSE = HT_pickAnyKey(tracker.events)
-		backgroundIdDropdown:updateDropdown()
+		CSE = HT_pickAnyKey(CST.events)
+		backgroundIdDropdown:Update()
+		addIdEditbox:Update()
+		arg1Editbox:Update()
+		onlyYourCastCheckbox:UpdateCheckbox()
+		overwriteShorterDurationCheckbox:UpdateCheckbox()
+		dontUpdateFromThisEventCheckbox:UpdateCheckbox()
+		eventTypeDropdown:Update()
+		luaCodeEditbox:Update()
+		eventsDropdown:Update()
 		relocateLeftSide()
 	end,nil,"/esoui/art/miscellaneous/spinnerminus_up.dds",false)
 

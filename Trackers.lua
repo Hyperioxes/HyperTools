@@ -313,14 +313,18 @@ local function createIconTracker(parent, t, i)
         if not container.delete then
             if HT_processLoad(data.load) then
                 EVENT_MANAGER:RegisterForUpdate("HT_IconTracker" .. data.name..(i or ""), 100, Process)
+                for key, event in pairs(data.events) do
+                    HT_eventFunctions[event.type](key, event, data)
+                end
             else
                 EVENT_MANAGER:UnregisterForUpdate("HT_IconTracker" .. data.name..(i or ""), 100)
                 container:SetHidden(true)
+                for key, event in pairs(data.events) do
+                    HT_unregisterEventFunctions[event.type](key, event, data)
+                end
             end
         end
-        for key, event in pairs(data.events) do
-            HT_eventFunctions[event.type](key, event, data)
-        end
+
 
         container:SetDrawLayer(data.drawLevel)
         container:SetDimensions(data.sizeX, data.sizeY)
