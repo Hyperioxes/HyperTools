@@ -15,8 +15,12 @@ local createdTrackerDefaultValues = {
 		height = 30
 	},
 	["Icon Tracker"] = {
-	width = 60,
-	height = 60,
+		width = 60,
+		height = 60,
+	},
+	["Progress Texture"] = {
+		width = 60,
+		height = 60,
 	},
 	["Group"] = {
 		width = 60,
@@ -411,6 +415,7 @@ local function createNewTracker(type,name,text,IDs,sizeX,sizeY,color,target,targ
 	timer1 = true,
 	timer2 = true,
 	inverse = false,
+	vertical = false,
 	conditions = {},
 	duration = {},
 	expiresAt = {},
@@ -580,23 +585,26 @@ function HT_Settings_initializeUI()
 	local typesByNumber = {
 		[2] = "Progress Bar",
 		[3] = "Icon Tracker",
-		[4] = "Group",
-		[5] = "Group Member",
-		[6] = "Import Tracker",
+		[4] = "Progress Texture",
+		[5] = "Group",
+		[6] = "Group Member",
+		[7] = "Import Tracker",
 	}
 	local iconsByNumber = {
 		[2] = "HyperTools/icons/ProgressBarIcon.dds",
 		[3] = "HyperTools/icons/IconTrackerIcon.dds",
-		[4] = "HyperTools/icons/GroupIcon.dds",
-		[5] = "HyperTools/icons/GroupMemberIcon.dds",
-		[6] = "HyperTools/icons/ImportIcon.dds",
+		[4] = "",
+		[5] = "HyperTools/icons/GroupIcon.dds",
+		[6] = "HyperTools/icons/GroupMemberIcon.dds",
+		[7] = "HyperTools/icons/ImportIcon.dds",
 	}
 	local textsByNumber = {
 		[2] = "Shows a progress bar with timer, stacks, and text",
 		[3] = "Shows an icon with timer and stacks",
-		[4] = "Place trackers inside a group to move them together, assign them same hide/show conditions and to export them as one",
-		[5] = "Trackers placed inside that group will be repeated 12 times and placed next to each of your group members",
-		[6] = "Paste an import string and import a pre-made tracker",
+		[4] = "eh",
+		[5] = "Place trackers inside a group to move them together, assign them same hide/show conditions and to export them as one",
+		[6] = "Trackers placed inside that group will be repeated 12 times and placed next to each of your group members",
+		[7] = "Paste an import string and import a pre-made tracker",
 	}
 	local newTrackersBackdrop = createBackground(background,"newTrackersBackdrop",525,775,250,25,TOPLEFT,TOPLEFT)
 	newTrackersBackdrop.Update = function()
@@ -759,12 +767,12 @@ function HT_Settings_initializeUI()
 		nameEditboxImport:Update()
 	end
 
-	for i=2, 6 do
+	for i=2, 7 do
 		local icon = createTexture(newTrackersBackdrop,"icon"..i,100,100,0,100*(i-2),TOPLEFT,TOPLEFT,iconsByNumber[i],2)
 		local button = createButton(icon,"button"..i,425,100,0,0,TOPLEFT,TOPRIGHT,function()
 			settingsVariables.typeOfCreatedTracker = typesByNumber[i]
 			settingsVariables.currentRightSide = "newProgressBarBackdrop"
-			if i==6 then settingsVariables.currentRightSide = "newImportBackdrop" end
+			if i==7 then settingsVariables.currentRightSide = "newImportBackdrop" end
 			updateUI()
 			relocateLeftSide()
 		end,nil,nil,true)
@@ -979,7 +987,17 @@ function HT_Settings_initializeUI()
 		inverseCheckbox:Update(CST.inverse)
 	end
 
-	local reimainingTimeCheckbox = createCheckbox(displayBackground,"remainingTimeCheckbox", 30,30,270,290,TOPLEFT,TOPLEFT,CST.timer1,function(arg)
+	local verticalCheckbox = createCheckbox(displayBackground,"verticalCheckbox", 30,30,270,290,TOPLEFT,TOPLEFT,CST.vertical,function(arg)
+		if CST.name ~= "none" then
+			CST.vertical = arg
+			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
+		end
+	end,"Vertical")
+	verticalCheckbox.UpdateCheckbox = function()
+		verticalCheckbox:Update(CST.vertical)
+	end
+
+	local reimainingTimeCheckbox = createCheckbox(displayBackground,"remainingTimeCheckbox", 30,30,270,330,TOPLEFT,TOPLEFT,CST.timer1,function(arg)
 		if CST.name ~= "none" then
 			CST.timer1 = arg
 			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
@@ -1000,7 +1018,7 @@ function HT_Settings_initializeUI()
 		decimalsDropdown:updateDropdown()
 	end
 
-	local stacksCheckbox = createCheckbox(displayBackground,"stacksCheckbox", 30,30,270,330,TOPLEFT,TOPLEFT,CST.timer2,function(arg)
+	local stacksCheckbox = createCheckbox(displayBackground,"stacksCheckbox", 30,30,270,370,TOPLEFT,TOPLEFT,CST.timer2,function(arg)
 		if CST.name ~= "none" then
 			CST.timer2 = arg
 			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
@@ -1093,10 +1111,11 @@ function HT_Settings_initializeUI()
 		colorpickerTimeColorpicker:Update()
 		colorpickerStacksColorpicker:Update()
 		colorpickerCooldownColorpicker:Update()
-		inverseCheckbox:Update()
-		reimainingTimeCheckbox:Update()
+		inverseCheckbox:UpdateCheckbox()
+		verticalCheckbox:UpdateCheckbox()
+		reimainingTimeCheckbox:UpdateCheckbox()
 		decimalsDropdown:Update()
-		stacksCheckbox:Update()
+		stacksCheckbox:UpdateCheckbox()
 		drawLevelDropdown:Update()
 		positionXEditbox:Update()
 		positionYEditbox:Update()
@@ -1157,13 +1176,13 @@ function HT_Settings_initializeUI()
 		end
 	end,"Target")
 	targetDropdown.Update = function()
-		if CST.type == "Group Member" or (CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member") then
-			targetDropdown:SetHidden(true)
-		else
+		--if CST.type == "Group Member" or (CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member") then
+			--targetDropdown:SetHidden(true)
+		--else
 			targetDropdown:SetHidden(false)
 			targetDropdown.selection = CST.target
 			targetDropdown:updateDropdown()
-		end
+		--end
 	end
 
 	createButton(generalBackground,"exportButton",200,30,15,250,TOPLEFT,TOPLEFT,function() 

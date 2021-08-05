@@ -52,6 +52,7 @@ HT_trackers = {
             timer2 = true,
             inverse = false,
             hideIcon = false,
+            vertical = false,
             conditions = {
                 [1] = {
                     arg1 = "Remaining Time",

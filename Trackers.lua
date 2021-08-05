@@ -330,7 +330,7 @@ local function createIconTracker(parent, t, i)
         container:SetDimensions(data.sizeX, data.sizeY)
         icon:SetDimensions(data.sizeX, data.sizeY)
         icon:SetTexture(data.icon)
-
+        icon:SetColor(unpack(data.barColor))
         cooldown:SetColor(unpack(data.cooldownColor))
 
         outline:SetDimensions(data.sizeX + (data.outlineThickness * 2), data.sizeY + (data.outlineThickness * 2))
@@ -379,6 +379,197 @@ local function createIconTracker(parent, t, i)
 
     return container
 end
+
+
+local function createProgressTexture(parent, t, i)
+
+    local container, backdrop, label, icon, _, timer, stacks, iconOutline
+
+    if parent:GetNamedChild(t.name .. "_Progress Texture"..(i or "")) then
+        container = parent:GetNamedChild(t.name .. "_Progress Texture"..(i or ""))
+        backdrop = container:GetNamedChild("backdrop")
+        icon = container:GetNamedChild("icon")
+        label = container:GetNamedChild("label")
+        timer = container:GetNamedChild("timer")
+        stacks = icon:GetNamedChild("stacks")
+        iconOutline = icon:GetNamedChild("iconOutline")
+
+    else
+        container = createContainer(parent, t.name .. "_Progress Texture"..(i or ""), t.sizeX, t.sizeY, t.xOffset, t.yOffset, TOPLEFT, TOPLEFT)
+        backdrop = WM:CreateControl("$(parent)backdrop", container, CT_BACKDROP, 4)
+        icon = createTexture(container, "icon", t.sizeY - (t.outlineThickness * 2), t.sizeY - (t.outlineThickness * 2), 0, 0, CENTER, CENTER, t.icon)
+        label = createLabel(container, "label", t.sizeX - t.sizeY, t.sizeY, (t.sizeX / 20) + t.sizeY, 0, LEFT, LEFT, t.text, 0, 1, t.font, t.fontSize, "thick-outline")
+        timer = createLabel(container, "timer", t.sizeX - t.sizeY, t.sizeY, t.sizeX / (-20), 0, RIGHT, RIGHT, "0.0", 2, 1, t.font, t.fontSize, "thick-outline")
+        stacks = createLabel(icon, "stacks", t.sizeY - t.outlineThickness, t.sizeY - t.outlineThickness, 0, 0, TOPLEFT, TOPLEFT, "0", 1, 1, t.font, t.fontSize, "thick-outline")
+        iconOutline = WM:CreateControl("$(parent)iconOutline", icon, CT_TEXTURE, 4)
+    end
+
+    container:SetHandler("OnMoveStop", function(_)
+        t.xOffset = container:GetLeft() - parent:GetLeft()
+        t.yOffset = container:GetTop() - parent:GetTop()
+        container:ClearAnchors()
+        container:SetAnchor(TOPLEFT, parent, TOPLEFT, t.xOffset, t.yOffset)
+    end)
+
+    iconOutline:SetAnchor(LEFT, icon, RIGHT, 0, 0)
+    iconOutline:SetTexture("")
+    container:SetMovable(true)
+    container:SetMouseEnabled(true)
+    container.delete = false
+    local function Process()
+        local override = {
+            text = t.text,
+            barColor = t.barColor,
+            textColor = t.textColor,
+            timeColor = t.timeColor,
+            stacksColor = t.stacksColor,
+            backgroundColor = t.backgroundColor,
+            outlineColor = t.outlineColor,
+            show = true,
+            targetNumber = i or t.targetNumber,
+            target = t.target,
+        }
+        if i then
+            override.target = "Group"
+        end
+        for _, condition in pairs(t.conditions) do
+            if operators[condition.operator](conditionArgs1[condition.arg1](t, override), condition.arg2) then
+                conditionResults[condition.result](override, condition.resultArguments)
+            end
+        end
+
+        if i then
+            container:SetHidden((not override.show and not t.load.always) or DisplayGroupControl(i))
+        else
+            container:SetHidden((not override.show and not t.load.always))
+        end
+        local remainingTime = math.max((t.expiresAt[HT_targets[override.target](override.targetNumber)] or 0) - GetGameTimeSeconds(), 0)
+        local duration = math.max((t.duration[HT_targets[override.target](override.targetNumber)] or 0), 0)
+        local stacksCount = t.stacks[HT_targets[override.target](override.targetNumber)] or 0
+        if remainingTime == 0 then
+            stacksCount = 0
+        end
+        if t.vertical then
+            icon:SetDimensions(t.sizeX, t.sizeY*(remainingTime/duration))
+            if t.inverse then
+                icon:SetTextureCoords(0,1,0,(remainingTime/duration))
+            else
+                icon:SetTextureCoords(0,1,(remainingTime/duration),1)
+            end
+        else
+            icon:SetDimensions(t.sizeX*(remainingTime/duration), t.sizeY)
+            if t.inverse then
+                icon:SetTextureCoords(0,(remainingTime/duration),0,1)
+            else
+                icon:SetTextureCoords((remainingTime/duration),1,0,1)
+            end
+        end
+
+        icon:SetColor(unpack(override.barColor))
+        timer:SetText(HT_getDecimals(remainingTime, t.decimals))
+        label:SetText(override.text)
+        stacks:SetText(stacksCount)
+        backdrop:SetCenterColor(unpack(override.backgroundColor))
+        backdrop:SetEdgeColor(unpack(override.outlineColor))
+
+    end
+
+    local function Update(_, data, groupAnchor)
+        if not container.delete then
+            if HT_processLoad(data.load) then
+                EVENT_MANAGER:RegisterForUpdate("HT_ProgressTexture" .. data.name .. (i or ""), 100, Process)
+            else
+                EVENT_MANAGER:UnregisterForUpdate("HT_ProgressTexture" .. data.name .. (i or ""), 100)
+                container:SetHidden(true)
+            end
+        end
+
+        for key, event in pairs(data.events) do
+            HT_eventFunctions[event.type](key, event, data)
+        end
+
+        container:SetDimensions(data.sizeX, data.sizeY)
+        icon:SetDimensions(data.sizeX, data.sizeY)
+        icon:SetTexture(data.icon)
+        if data.hideIcon then
+            icon:SetDimensions(0, 0)
+        end
+        backdrop:SetCenterColor(unpack(data.backgroundColor))
+        backdrop:ClearAnchors()
+        backdrop:SetAnchor(CENTER, container, CENTER, 0, 0)
+        backdrop:SetDimensions(data.sizeX + (data.outlineThickness * 2), data.sizeY + (data.outlineThickness * 2))
+        backdrop:SetEdgeColor(unpack(data.outlineColor))
+        backdrop:SetEdgeTexture("", data.outlineThickness, data.outlineThickness)
+        iconOutline:SetDimensions(data.outlineThickness, data.sizeY)
+        iconOutline:SetColor(unpack(data.outlineColor))
+        --bar:SetColor(unpack(data.barColor))
+        label:SetDimensions(data.sizeX - data.sizeY, data.sizeY)
+        label:SetText(data.text)
+        label:SetFont(string.format("$(%s)|$(KB_%s)|%s", data.font, data.fontSize, data.fontWeight))
+        label:SetColor(unpack(data.textColor))
+        stacks:SetDimensions(data.sizeY, data.sizeY)
+        stacks:SetFont(string.format("$(%s)|$(KB_%s)|%s", data.font, data.fontSize, data.fontWeight))
+        stacks:SetColor(unpack(data.stacksColor))
+        timer:SetDimensions(data.sizeX - data.sizeY, data.sizeY)
+        timer:SetFont(string.format("$(%s)|$(KB_%s)|%s", data.font, data.fontSize, data.fontWeight))
+        timer:SetColor(unpack(data.timeColor))
+        icon:ClearAnchors()
+        if data.vertical then
+            if data.inverse then
+                icon:SetAnchor(TOP, container, TOP, 0, 0)
+            else
+                icon:SetAnchor(BOTTOM, container, BOTTOM, 0, 0)
+            end
+        else
+            if data.inverse then
+                icon:SetAnchor(RIGHT, container, RIGHT, 0, 0)
+            else
+                icon:SetAnchor(LEFT, container, LEFT, 0, 0)
+            end
+        end
+
+        label:ClearAnchors()
+        label:SetAnchor(LEFT, container, LEFT, (data.sizeX / 20) + data.sizeY, 0)
+        stacks:ClearAnchors()
+        stacks:SetAnchor(LEFT, container, LEFT, (data.sizeX / 20) + data.sizeY, 0)
+        timer:ClearAnchors()
+        timer:SetAnchor(RIGHT, container, RIGHT, (data.sizeX / -20), 0)
+        container:ClearAnchors()
+
+        if data.parent == "HT_Trackers" then
+            container:SetAnchor(TOPLEFT, HT_Trackers, TOPLEFT, data.xOffset, data.yOffset)
+        elseif HT_getTrackerFromName(data.parent, HTSV.trackers).type == "Group Member" and groupAnchor then
+            container:SetAnchor(TOPLEFT, HT_findContainer(HT_getTrackerFromName(data.parent, HTSV.trackers)):GetNamedChild(HT_getTrackerFromName(data.parent, HTSV.trackers).name .. "Group" .. groupAnchor), TOPLEFT, data.xOffset, data.yOffset)
+        else
+            container:SetAnchor(TOPLEFT, HT_findContainer(HT_getTrackerFromName(data.parent, HTSV.trackers)), TOPLEFT, data.xOffset, data.yOffset)
+        end
+        timer:SetHidden(not data.timer1)
+        stacks:SetHidden(not data.timer2)
+    end
+    container.Update = Update
+    container:Update(t)
+
+    container.Process = Process
+
+    local function UnregisterEvents(_)
+        for key, event in pairs(t.events) do
+            HT_unregisterEventFunctions[event.type](key, event, t)
+        end
+    end
+    container.UnregisterEvents = UnregisterEvents
+
+    local function Delete(self)
+        self:UnregisterEvents()
+        EVENT_MANAGER:UnregisterForUpdate("HT_ProgressTexture" .. t.name..(i or ""), 100)
+        container.delete = true
+        self:SetHidden(true)
+    end
+    container.Delete = Delete
+
+    return container
+end
+
+
 
 local function createGroup(parent, t, i)
 
@@ -573,6 +764,6 @@ initializeTrackerFunctions = {
     ["Icon Tracker"] = createIconTracker,
     ["Progress Bar"] = createProgressBar,
     ["Group"] = createGroup,
-    ["Resource Bar"] = createResourceBar,
     ["Group Member"] = createGroupMemberGroup,
+    ["Progress Texture"] = createProgressTexture,
 }

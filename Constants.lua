@@ -81,22 +81,22 @@ conditionResults = {
 
 conditionArgs1 = {
     ["Remaining Time"] = function(tracker, override)
-        if (tracker.expiresAt[HT_targets[tracker.target](override.targetNumber or tracker.targetNumber)] or 0) - GetGameTimeSeconds() > 0 then
-            return tracker.expiresAt[HT_targets[tracker.target](override.targetNumber or tracker.targetNumber)] - GetGameTimeSeconds()
+        if (tracker.expiresAt[HT_targets[override.target or tracker.target](override.targetNumber or tracker.targetNumber)] or 0) - GetGameTimeSeconds() > 0 then
+            return tracker.expiresAt[HT_targets[override.target or tracker.target](override.targetNumber or tracker.targetNumber)] - GetGameTimeSeconds()
         end
         return 0
     end,
-    ["Stacks"] = function(tracker)
-        if (tracker.stacks[HT_targets[tracker.target](tracker.targetNumber)] or 0) > 0 and (tracker.expiresAt[HT_targets[tracker.target](tracker.targetNumber)] or 0) - GetGameTimeSeconds() > 0 then
-            return tracker.stacks[HT_targets[tracker.target](tracker.targetNumber)]
+    ["Stacks"] = function(tracker,override)
+        if (tracker.stacks[HT_targets[override.target or tracker.target](override.targetNumber or tracker.targetNumber)] or 0) > 0 and (tracker.expiresAt[HT_targets[override.target or tracker.target](override.targetNumber or tracker.targetNumber)] or 0) - GetGameTimeSeconds() > 0 then
+            return tracker.stacks[HT_targets[override.target or tracker.target](override.targetNumber or tracker.targetNumber)]
         end
         return 0
     end,
     ["Group Role"] = function(tracker, override)
-        return GetGroupMemberSelectedRole("group" .. override.targetNumber)
+        return GetGroupMemberSelectedRole("group" .. (override.targetNumber or tracker..targetNumber))
     end,
     ["Distance to target"] = function(tracker, override)
-        return HT_GetDistance("player", "group" .. override.targetNumber)
+        return HT_GetDistance("player", "group" .. (override.targetNumber or tracker..targetNumber))
     end,
 
 }

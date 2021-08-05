@@ -45,14 +45,15 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
         checkbox:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
     end
 
-    local function Update(_, newValue)
-        checkbox.data = newValue
-        if checkbox.data then
-            checkbox:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
+    local function Update(self, newValue)
+        self.data = newValue
+        if self.data then
+            self:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
         else
-            checkbox:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
+            self:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
         end
     end
+
     checkbox.Update = Update
     if labelText then
         checkbox.label = createLabel(checkbox,"label",labelLength or 100,60,0,0,LEFT,RIGHT,labelText,0)

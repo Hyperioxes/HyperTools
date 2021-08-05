@@ -139,26 +139,9 @@ function HT_InitializeGlobalControl()
         HT_changeLock(v, false)
     end
 
-    --[[local texture = WM:CreateControl("$(parent)texture",HT_Trackers,  CT_TEXTURE, 4)
-    texture:SetDimensions(100,100)
-    texture:SetAnchor(TOPLEFT,HT_Trackers,TOPLEFT,0,0)
-    texture:SetHidden(false)
-    texture:SetTexture("/esoui/art/actionbar/abilityhighlight_mage_med.dds")
-    texture:SetMovable(true)
-    texture:SetMouseEnabled(true)
-
-    local timeline = ANIMATION_MANAGER:CreateTimeline()
-    local animation = timeline:InsertAnimation(ANIMATION_TEXTURE, texture)
-    animation:SetImageData(64,1)
-    animation:SetFramerate(64)
-    timeline:SetEnabled(true)
-    timeline:SetPlaybackType(ANIMATION_PLAYBACK_LOOP, LOOP_INDEFINITELY)
-    timeline:PlayFromStart()]]
-
-
     HT_Trackers:ClearAnchors()
     HT_Trackers:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, 0, 0)
-    --EVENT_MANAGER:RegisterForUpdate("HT_Update_every_100", 100,HT_updateEvery100)
+
 end
 
 

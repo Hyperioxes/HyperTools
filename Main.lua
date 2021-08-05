@@ -50,6 +50,10 @@ function HT_adjustDataForNewestVersion(data)
             t.load.always = false
         end
 
+        if not t.vertical then
+            t.vertical = false
+        end
+
         for _, v in pairs(t.children) do
             searchThroughTable(v)
         end
@@ -71,7 +75,7 @@ function OnAddOnLoaded(_, addonName)
 
     HT_adjustDataForNewestVersion(HTSV.trackers) --Adjust data for newest version, fill gaps in null data with default values
 
-    for _, t in pairs(HTSV.trackers) do
+    for _, t in pairs(HTSV.trackers) do --Nullify all expire dates and durations
         HT_nullify(t)
     end
 
@@ -83,7 +87,7 @@ function OnAddOnLoaded(_, addonName)
 
     --To improve performance, the "check" if tracker should be turned on happens on certain events (skill changed,
     --equipment changed, zone changed, boss changed) instead of every 100ms
-    EVENT_MANAGER:RegisterForEvent(name, EVENT_SKILL_RESPEC_RESULT, function() --check when skill changed
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_SKILL_RESPEC_RESULT, function() --Check when skill changed
         if not HT.loadCheckOnCooldown then
             HT.loadCheckOnCooldown = true
             zo_callLater(function()
@@ -95,7 +99,7 @@ function OnAddOnLoaded(_, addonName)
                 HT.loadCheckOnCooldown = false end, 100)
         end
     end)
-    EVENT_MANAGER:RegisterForEvent(name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function() --check when skill changed
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function(eventCode,badId,slotIndex,isNewItem,itemSoundCategory,inventoryUpdateReason,stackCountChange) --Check when skill changed
         if not HT.loadCheckOnCooldown then
             HT.loadCheckOnCooldown = true
             zo_callLater(function()
@@ -107,7 +111,9 @@ function OnAddOnLoaded(_, addonName)
                 HT.loadCheckOnCooldown = false end, 100)
         end
     end)
-    CALLBACK_MANAGER:RegisterCallback("OnWorldMapChanged", function() -- check when map changed
+    EVENT_MANAGER:AddFilterForEvent(name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_INVENTORY_UPDATE_REASON, INVENTORY_UPDATE_REASON_DEFAULT) --Update only on equipment change, not on durability change, glyph usage, poison usage etc
+
+    CALLBACK_MANAGER:RegisterCallback("OnWorldMapChanged", function() -- Check when map changed
         if not HT.loadCheckOnCooldown then
             HT.loadCheckOnCooldown = true
             zo_callLater(function()
@@ -119,7 +125,7 @@ function OnAddOnLoaded(_, addonName)
                 HT.loadCheckOnCooldown = false end, 100)
         end
     end)
-    EVENT_MANAGER:RegisterForEvent(name, EVENT_BOSSES_CHANGED, function() --check when boss changed
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_BOSSES_CHANGED, function() --Check when boss changed
         if not HT.loadCheckOnCooldown then
             HT.loadCheckOnCooldown = true
             zo_callLater(function()
@@ -140,6 +146,12 @@ function OnAddOnLoaded(_, addonName)
         local abilityId = GetSpecificSkillAbilityInfo(skillType, skillLineIndex, skillIndex, self:GetMorphSlot(), 4)
         SetTooltipText(tooltip, "Ability Id: "..abilityId,1,1,1) --FIXME shows only rank 4
     end
+
+
+    EVENT_MANAGER:RegisterForEvent(name, EVENT_ACTION_SLOT_ABILITY_USED, function() --Check when boss changed
+        --zo_callLater(CancelCast,300)
+        --CancelCast()
+    end)
 
 
 end
