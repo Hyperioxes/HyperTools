@@ -1,9 +1,9 @@
 HT = {
     name = "HyperTools",
-    author = "Hyperioxes",
+    author = "Hyperioxes, Shadowwolf136",
     color = "DDFFEE",
     menuName = "HyperTools",
-    version = "0.11",
+    version = "0.12",
     expiresAt = {},
     duration = {},
     stacks = {},

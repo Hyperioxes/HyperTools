@@ -16,7 +16,7 @@ local function showUI()
 end
 
 
-function HT_toggleUI()
+function HT_toggleEffectUI()
     if HT_effectSettingsVisible then
         hideUI()
     else
@@ -24,7 +24,7 @@ function HT_toggleUI()
     end
 end
 
-SLASH_COMMANDS["/hteffect"] = HT_toggleUI
+SLASH_COMMANDS["/hteffect"] = HT_toggleEffectUI
 
 
 

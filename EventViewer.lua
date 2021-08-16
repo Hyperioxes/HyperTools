@@ -14,7 +14,7 @@ local function showUI()
 end
 
 
-function HT_toggleUI()
+function HT_toggleEventUI()
     if HT_eventSettingsVisible then
         hideUI()
     else
@@ -22,7 +22,7 @@ function HT_toggleUI()
     end
 end
 
-SLASH_COMMANDS["/htevent"] = HT_toggleUI
+SLASH_COMMANDS["/htevent"] = HT_toggleEventUI
 
 local defaultFilterOptions = {
     sourceName = nil,

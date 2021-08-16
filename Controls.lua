@@ -7,6 +7,7 @@ function createButton(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, 
     button:SetVerticalAlignment(TEXT_ALIGN_CENTER)
     button:SetFont("ZoFontGameSmall")
     button:SetHandler("OnMouseDown", function(_, _, ctrl, alt, shift)
+		PlaySound(SOUNDS.DEFAULT_CLICK)
         buttonFunction(ctrl, alt, shift,button)
     end)
     button:SetNormalTexture(textureOverride or "")
@@ -29,6 +30,7 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
     checkbox.data = defaultValue
     checkbox:SetMouseEnabled(true)
     checkbox:SetHandler("OnMouseUp", function(_, _, _)
+		PlaySound(SOUNDS.DEFAULT_CLICK)
         checkbox.data = not checkbox.data
         if checkbox.data then
             checkbox:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
@@ -135,7 +137,7 @@ function createDropdown(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
     end
     comboBox:updateDropdown()
     if labelText then
-        comboBox.label = createLabel(comboBox,"label",120,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
+        comboBox.label = createLabel(comboBox,"label",sizeX,30,0,0,BOTTOMLEFT,TOPLEFT,labelText,0)
     end
     return comboBox
 end

@@ -6,6 +6,16 @@
 					HT_toggleUI()
 				</Down>
 			</Action>
+			<Action name="TOGGLE_EFFECT_FRAME">
+				<Down>
+					HT_toggleEffectUI()
+				</Down>
+			</Action>
+			<Action name="TOGGLE_EVENT_FRAME">
+				<Down>
+					HT_toggleEventUI()
+				</Down>
+			</Action>
 		</Category>
 	</Layer>
 </Bindings>

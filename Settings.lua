@@ -593,7 +593,7 @@ function HT_Settings_initializeUI()
 	local iconsByNumber = {
 		[2] = "HyperTools/icons/ProgressBarIcon.dds",
 		[3] = "HyperTools/icons/IconTrackerIcon.dds",
-		[4] = "",
+		[4] = "HyperTools/icons/ProgressTextureIcon.dds",
 		[5] = "HyperTools/icons/GroupIcon.dds",
 		[6] = "HyperTools/icons/GroupMemberIcon.dds",
 		[7] = "HyperTools/icons/ImportIcon.dds",
@@ -601,7 +601,7 @@ function HT_Settings_initializeUI()
 	local textsByNumber = {
 		[2] = "Shows a progress bar with timer, stacks, and text",
 		[3] = "Shows an icon with timer and stacks",
-		[4] = "eh",
+		[4] = "Shows a texture that shrinks/grows based on assigned effect's duration",
 		[5] = "Place trackers inside a group to move them together, assign them same hide/show conditions and to export them as one",
 		[6] = "Trackers placed inside that group will be repeated 12 times and placed next to each of your group members",
 		[7] = "Paste an import string and import a pre-made tracker",
@@ -649,6 +649,7 @@ function HT_Settings_initializeUI()
 
 	createButton(idEditboxPB,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 		table.insert(iDDropdownPB.choices,(tonumber(idEditboxPB:GetText()) or GetAbilityIdFromName(idEditboxPB:GetText())))
+		idEditboxPB:SetText(nil)
 		iDDropdownPB.selection = HT_pickAnyElement(iDDropdownPB.choices)
 		iDDropdownPB:updateDropdown()
 	end,nil,"/esoui/art/buttons/plus_up.dds",nil)
@@ -702,12 +703,17 @@ function HT_Settings_initializeUI()
 	end
 
 	createButton(newProgressBarBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
-		createNewTracker(settingsVariables.typeOfCreatedTracker,nameEditboxPB:GetText(),textEditboxPB:GetText(),iDDropdownPB.choices,tonumber(widthEditboxPB:GetText()),tonumber(heightEditboxPB:GetText()),colorpickerPB.color,targetDropdownPB.selection,targetNumberDropdownPB.selection,typeDropdownPB.selection)
+	
+		if nameEditboxPB:GetText() == nil then
+			d("Can't create tracker without name")
+		else
+			createNewTracker(settingsVariables.typeOfCreatedTracker,nameEditboxPB:GetText(),textEditboxPB:GetText(),iDDropdownPB.choices,tonumber(widthEditboxPB:GetText()),tonumber(heightEditboxPB:GetText()),colorpickerPB.color,targetDropdownPB.selection,targetNumberDropdownPB.selection,typeDropdownPB.selection)
+			
+			
+			relocateLeftSide()
+			relocateLeftSide()
+		end
 		
-		
-		
-		relocateLeftSide()
-		relocateLeftSide()
 	end,"Create",nil,true)
 
 	newProgressBarBackdrop.Update = function()
@@ -740,7 +746,7 @@ function HT_Settings_initializeUI()
 		nameEditboxImport:SetText("")
 	end
 
-	createButton(newImportBackdrop,"buttonCreateTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
+	createButton(newImportBackdrop,"buttonImportTracker",200,30,150,700,TOPLEFT,TOPLEFT,function()
 		local importString = nameEditboxImport:GetText()
 		if importString then
 			importString = string.sub(importString,2,#importString-1)
@@ -756,7 +762,7 @@ function HT_Settings_initializeUI()
 		
 		
 		
-	end,"Create",nil,true)
+	end,"Import",nil,true)
 
 	newImportBackdrop.Update = function()
 		if settingsVariables.currentRightSide == "newImportBackdrop" then
@@ -990,6 +996,9 @@ function HT_Settings_initializeUI()
 	local verticalCheckbox = createCheckbox(displayBackground,"verticalCheckbox", 30,30,270,290,TOPLEFT,TOPLEFT,CST.vertical,function(arg)
 		if CST.name ~= "none" then
 			CST.vertical = arg
+			local holder = CST.sizeX
+			CST.sizeX = CST.sizeY
+			CST.sizeY = holder
 			if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 		end
 	end,"Vertical")
@@ -1252,22 +1261,22 @@ function HT_Settings_initializeUI()
 
 	end
 
-	createButton(generalBackground,"buttonDeleteBoss",30,30,190,435,TOPLEFT,TOPLEFT,function()
+	createButton(bossDropdown,"buttonDeleteBoss",30,30,0,0,LEFT,RIGHT,function()
 		HT_removeElementFromTable(CST.load.bosses,bossDropdown.selection)
 		bossDropdown.choices = CST.load.bosses
 		bossDropdown.selection = HT_pickAnyElement(CST.load.bosses)
 		bossDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end, "-",nil,nil)
+	end, nil, "/esoui/art/miscellaneous/spinnerminus_up.dds", false)
 
-	createButton(generalBackground,"buttonAddBoss",30,30,188,405,TOPLEFT,TOPLEFT,function()
+	createButton(addBossEditbox,"buttonAddBoss",30,30,0,0,LEFT,RIGHT,function()
 		table.insert(CST.load.bosses,addBossEditbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
 		addBossEditbox:SetText(nil)
 		bossDropdown.choices = CST.load.bosses
 		bossDropdown.selection = HT_pickAnyElement(CST.load.bosses)
 		bossDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end,"+",nil,nil)
+	end, nil, "esoui/art/buttons/plus_up.dds", false)
 
 	local skillDropdown = createDropdown(generalBackground,"skillDropdown",175,32,15,655,TOPLEFT,TOPLEFT,CST.load.skills,HT_pickAnyElement(CST.load.skills),function(_) end)
 	skillDropdown.Update = function()
@@ -1281,22 +1290,22 @@ function HT_Settings_initializeUI()
 
 	end
 
-	createButton(generalBackground,"buttonDeleteSkill",30,30,190,655,TOPLEFT,TOPLEFT,function()
+	createButton(skillDropdown,"buttonDeleteSkill",30,30,0,0,LEFT,RIGHT,function()
 		HT_removeElementFromTable(CST.load.skills,skillDropdown.selection)
 		skillDropdown.choices = CST.load.skills
 		skillDropdown.selection = HT_pickAnyElement(CST.load.skills)
 		skillDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end, "-",nil,nil)
+	end, nil, "/esoui/art/miscellaneous/spinnerminus_up.dds", false)
 
-	createButton(generalBackground,"buttonAddSkill",30,30,188,625,TOPLEFT,TOPLEFT,function()
+	createButton(addSkillEditbox,"buttonAddSkill",30,30,0,0,LEFT,RIGHT,function()
 		table.insert(CST.load.skills,tonumber(addSkillEditbox:GetText()))-- or GetAbilityIdFromName(editbox:GetText())))
 		addSkillEditbox:SetText(nil)
 		skillDropdown.choices = CST.load.skills
 		skillDropdown.selection = HT_pickAnyElement(CST.load.skills)
 		skillDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end,"+",nil,nil)
+	end, nil, "esoui/art/buttons/plus_up.dds", false)
 
 	local itemSetDropdown = createDropdown(generalBackground,"itemSetDropdown",175,32,235,655,TOPLEFT,TOPLEFT,CST.load.itemSets,HT_pickAnyElement(CST.load.itemSets),function(_) end)
 	itemSetDropdown.Update = function()
@@ -1310,22 +1319,22 @@ function HT_Settings_initializeUI()
 
 	end
 
-	createButton(generalBackground,"buttonDeleteitemSet",30,30,410,655,TOPLEFT,TOPLEFT,function()
+	createButton(itemSetDropdown,"buttonDeleteitemSet",30,30,0,0,LEFT,RIGHT,function()
 		HT_removeElementFromTable(CST.load.itemSets,itemSetDropdown.selection)
 		itemSetDropdown.choices = CST.load.itemSets
 		itemSetDropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		itemSetDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end, "-",nil,nil)
+	end, nil, "/esoui/art/miscellaneous/spinnerminus_up.dds", false)
 
-	createButton(generalBackground,"buttonAdditemSet",30,30,408,625,TOPLEFT,TOPLEFT,function()
+	createButton(addItemSetEditbox,"buttonAdditemSet",30,30,0,0,LEFT,RIGHT,function()
 		table.insert(CST.load.itemSets,addItemSetEditbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
 		addItemSetEditbox:SetText(nil)
 		itemSetDropdown.choices = CST.load.itemSets
 		itemSetDropdown.selection = HT_pickAnyElement(CST.load.itemSets)
 		itemSetDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end,"+",nil,nil)
+	end, nil, "esoui/art/buttons/plus_up.dds", false)
 
 	local zoneDropdown = createDropdown(generalBackground,"zoneDropdown",175,32,235,535,TOPLEFT,TOPLEFT,CST.load.zones,HT_pickAnyElement(CST.load.zones),function(_) end)
 	zoneDropdown.Update = function()
@@ -1339,22 +1348,22 @@ function HT_Settings_initializeUI()
 
 	end
 
-	createButton(generalBackground,"buttonDeletezone",30,30,410,535,TOPLEFT,TOPLEFT,function()
+	createButton(zoneDropdown,"buttonDeletezone",30,30,0,0,LEFT,RIGHT,function()
 		HT_removeElementFromTable(CST.load.zones,zoneDropdown.selection)
 		zoneDropdown.choices = CST.load.zones
 		zoneDropdown.selection = HT_pickAnyElement(CST.load.zones)
 		zoneDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end, "-",nil,nil)
+	end, nil, "/esoui/art/miscellaneous/spinnerminus_up.dds", false)
 
-	createButton(generalBackground,"buttonAddzone",30,30,408,505,TOPLEFT,TOPLEFT,function()
+	createButton(addZoneEditbox,"buttonAddzone",30,30,0,0,LEFT,RIGHT,function()
 		table.insert(CST.load.zones,addZoneEditbox:GetText())-- or GetAbilityIdFromName(editbox:GetText())))
 		addZoneEditbox:SetText(nil)
 		zoneDropdown.choices = CST.load.zones
 		zoneDropdown.selection = HT_pickAnyElement(CST.load.zones)
 		zoneDropdown:updateDropdown()
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
-	end,"+",nil,nil)
+	end, nil, "esoui/art/buttons/plus_up.dds", false)
 
 	generalBackground.Update = function()
 		local generalButton = selectedTrackerSettingsBackdrop:GetNamedChild("button21")
@@ -1598,6 +1607,7 @@ function HT_Settings_initializeUI()
 
 	createButton(addIdEditbox,"buttonAddID",30,30,0,0,LEFT,RIGHT,function()
 		table.insert(CST.events[CSE].arguments.Ids,(tonumber(addIdEditbox:GetText()) or GetAbilityIdFromName(addIdEditbox:GetText())))
+		addIdEditbox:SetText(nil)
 		backgroundIdDropdown.choices = CST.events[CSE].arguments.Ids
 		backgroundIdDropdown.selection = HT_pickAnyElement(CST.events[CSE].arguments.Ids)
 		backgroundIdDropdown:updateDropdown()

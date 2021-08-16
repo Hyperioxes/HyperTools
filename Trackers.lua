@@ -51,11 +51,12 @@ local function createProgressBar(parent, t, i)
         container:SetAnchor(TOPLEFT, parent, TOPLEFT, t.xOffset, t.yOffset)
     end)
 
-    iconOutline:SetAnchor(LEFT, icon, RIGHT, 0, 0)
     iconOutline:SetTexture("")
     container:SetMovable(true)
     container:SetMouseEnabled(true)
     container.delete = false
+    timer:SetHorizontalAlignment(1)
+    timer:SetVerticalAlignment(1)
     local function Process()
         local override = {
             text = t.text,
@@ -83,17 +84,24 @@ local function createProgressBar(parent, t, i)
         else
             container:SetHidden((not override.show and not t.load.always))
         end
-        local barX = t.sizeX - t.sizeY
-        local barY = t.sizeY
         local remainingTime = math.max((t.expiresAt[HT_targets[override.target](override.targetNumber)] or 0) - GetGameTimeSeconds(), 0)
         local duration = math.max((t.duration[HT_targets[override.target](override.targetNumber)] or 0), 0)
         local stacksCount = t.stacks[HT_targets[override.target](override.targetNumber)] or 0
         if remainingTime == 0 then
-            bar:SetDimensions(0, barY)
             stacksCount = 0
-        else
-            bar:SetDimensions(barX * (remainingTime / duration), barY)
+            if t.vertical then
+                bar:SetDimensions(t.sizeX, 0)
+            else
+                bar:SetDimensions(0, t.sizeY)
+            end
         end
+
+        if t.vertical then
+            bar:SetDimensions(t.sizeX, (t.sizeY- t.sizeX)*(remainingTime/duration))
+        else
+            bar:SetDimensions((t.sizeX-t.sizeY)*(remainingTime/duration), t.sizeY)
+        end
+
         bar:SetColor(unpack(override.barColor))
         timer:SetText(HT_getDecimals(remainingTime, t.decimals))
         label:SetText(override.text)
@@ -117,7 +125,7 @@ local function createProgressBar(parent, t, i)
         end
 
         container:SetDimensions(data.sizeX, data.sizeY)
-        icon:SetDimensions(data.sizeY, data.sizeY)
+
         icon:SetTexture(data.icon)
         if data.hideIcon then
             icon:SetDimensions(0, 0)
@@ -128,37 +136,83 @@ local function createProgressBar(parent, t, i)
         backdrop:SetDimensions(data.sizeX + (data.outlineThickness * 2), data.sizeY + (data.outlineThickness * 2))
         backdrop:SetEdgeColor(unpack(data.outlineColor))
         backdrop:SetEdgeTexture("", data.outlineThickness, data.outlineThickness)
-        iconOutline:SetDimensions(data.outlineThickness, data.sizeY)
-        iconOutline:SetColor(unpack(data.outlineColor))
+
         --bar:SetColor(unpack(data.barColor))
-        label:SetDimensions(data.sizeX - data.sizeY, data.sizeY)
         label:SetText(data.text)
         label:SetFont(string.format("$(%s)|$(KB_%s)|%s", data.font, data.fontSize, data.fontWeight))
         label:SetColor(unpack(data.textColor))
         stacks:SetDimensions(data.sizeY, data.sizeY)
         stacks:SetFont(string.format("$(%s)|$(KB_%s)|%s", data.font, data.fontSize, data.fontWeight))
         stacks:SetColor(unpack(data.stacksColor))
-        timer:SetDimensions(data.sizeX - data.sizeY, data.sizeY)
         timer:SetFont(string.format("$(%s)|$(KB_%s)|%s", data.font, data.fontSize, data.fontWeight))
         timer:SetColor(unpack(data.timeColor))
-        if data.inverse then
-            icon:ClearAnchors()
-            icon:SetAnchor(TOPRIGHT, container, TOPRIGHT, 0, 0)
-            bar:ClearAnchors()
-            bar:SetAnchor(RIGHT, icon, LEFT, 0, 0)
-            label:ClearAnchors()
-            label:SetAnchor(RIGHT, container, RIGHT, (data.sizeX / 20) - data.sizeY, 0)
-            timer:ClearAnchors()
-            timer:SetAnchor(LEFT, container, LEFT, data.sizeX / -20, 0)
+
+        iconOutline:SetColor(unpack(data.outlineColor))
+        iconOutline:ClearAnchors()
+        if data.vertical then
+            icon:SetDimensions(data.sizeX, data.sizeX)
+            timer:SetDimensions(data.sizeX, data.sizeX*4)
+            timer:SetHorizontalAlignment(1)
+            label:SetHorizontalAlignment(1)
+            label:SetDimensions(data.sizeX, data.sizeY - (2*data.sizeX))
+            iconOutline:SetDimensions(data.sizeX, data.outlineThickness)
+            if data.inverse then
+                iconOutline:SetAnchor(TOP, icon, BOTTOM, 0, 0)
+                label:SetVerticalAlignment(3)
+                timer:SetVerticalAlignment(4)
+                icon:ClearAnchors()
+                icon:SetAnchor(TOP, container, TOP, 0, 0)
+                bar:ClearAnchors()
+                bar:SetAnchor(TOP, icon, BOTTOM, 0, 0)
+                label:ClearAnchors()
+                label:SetAnchor(TOP, container, TOP,0, data.sizeX*1.4)
+                timer:ClearAnchors()
+                timer:SetAnchor(BOTTOM, container, BOTTOM, 0, 0)
+            else
+                iconOutline:SetAnchor(BOTTOM, icon, TOP, 0, 0)
+                label:SetVerticalAlignment(4)
+                timer:SetVerticalAlignment(3)
+                icon:ClearAnchors()
+                icon:SetAnchor(BOTTOM, container, BOTTOM, 0, 0)
+                bar:ClearAnchors()
+                bar:SetAnchor(BOTTOM, icon, TOP, 0, 0)
+                label:ClearAnchors()
+                label:SetAnchor(BOTTOM, container, BOTTOM,0, -data.sizeX*1.4)
+                timer:ClearAnchors()
+                timer:SetAnchor(TOP, container, TOP,0, 0)
+            end
         else
-            icon:ClearAnchors()
-            icon:SetAnchor(TOPLEFT, container, TOPLEFT, 0, 0)
-            bar:ClearAnchors()
-            bar:SetAnchor(LEFT, icon, RIGHT, 0, 0)
-            label:ClearAnchors()
-            label:SetAnchor(LEFT, container, LEFT, (data.sizeX / 20) + data.sizeY, 0)
-            timer:ClearAnchors()
-            timer:SetAnchor(RIGHT, container, RIGHT, (data.sizeX / -20), 0)
+            icon:SetDimensions(data.sizeY, data.sizeY)
+            timer:SetDimensions(data.sizeY*4, data.sizeY)
+            timer:SetVerticalAlignment(1)
+            label:SetVerticalAlignment(1)
+            label:SetDimensions(data.sizeX - data.sizeY, data.sizeY)
+            iconOutline:SetDimensions(data.outlineThickness, data.sizeY)
+            if data.inverse then
+                iconOutline:SetAnchor(RIGHT, icon, LEFT, 0, 0)
+                label:SetHorizontalAlignment(2)
+                timer:SetHorizontalAlignment(0)
+                icon:ClearAnchors()
+                icon:SetAnchor(TOPRIGHT, container, TOPRIGHT, 0, 0)
+                bar:ClearAnchors()
+                bar:SetAnchor(RIGHT, icon, LEFT, 0, 0)
+                label:ClearAnchors()
+                label:SetAnchor(RIGHT, container, RIGHT, -data.sizeY*1.4, 0)
+                timer:ClearAnchors()
+                timer:SetAnchor(LEFT, container, LEFT, data.sizeY*0.4, 0)
+            else
+                iconOutline:SetAnchor(LEFT, icon, RIGHT, 0, 0)
+                label:SetHorizontalAlignment(0)
+                timer:SetHorizontalAlignment(2)
+                icon:ClearAnchors()
+                icon:SetAnchor(TOPLEFT, container, TOPLEFT, 0, 0)
+                bar:ClearAnchors()
+                bar:SetAnchor(LEFT, icon, RIGHT, 0, 0)
+                label:ClearAnchors()
+                label:SetAnchor(LEFT, container, LEFT, data.sizeY*1.4, 0)
+                timer:ClearAnchors()
+                timer:SetAnchor(RIGHT, container, RIGHT, -data.sizeY*0.4, 0)
+            end
         end
         container:ClearAnchors()
 
