@@ -3,7 +3,7 @@ HT = {
     author = "Hyperioxes, Shadowwolf136",
     color = "DDFFEE",
     menuName = "HyperTools",
-    version = "0.12",
+    version = "0.12d",
     expiresAt = {},
     duration = {},
     stacks = {},
@@ -152,6 +152,36 @@ function OnAddOnLoaded(_, addonName)
         --zo_callLater(CancelCast,300)
         --CancelCast()
     end)
+
+    local originalGetUnitName = GetUnitName
+    local mainBossToMiniBoss = {
+        ["Oaxiltso"] = {
+            [2] = "Havocrel Annihilator",
+        },
+        ["Saint Olms the Just"] = {
+            [2] = "Saint Llothis the Pious",
+            [3] = "Saint Felms the Bold",
+        },
+        ["Z'Maja"] = {
+            [2] = "Shade of Siroria",
+            [3] = "Shade of Relequen",
+            [4] = "Shade of Galenwe",
+        },
+        ["Lord Falgravn"] = {
+            [2] = "Lieutenant Njordal",
+        },
+        ["Tazkad the Packmaster"] = {
+            [2] = "Murkwater Durzog",
+        },
+    }
+    GetUnitName = function(arg1)
+        if arg1 and mainBossToMiniBoss[originalGetUnitName("boss1")] and string.sub(arg1, 1,1) == "b" then
+            if (mainBossToMiniBoss[originalGetUnitName("boss1")][tonumber(string.sub(arg1, -1))] or nil) then
+                return mainBossToMiniBoss[originalGetUnitName("boss1")][tonumber(string.sub(arg1, -1))]
+            end
+        end
+        return originalGetUnitName(arg1)
+    end
 
 
 end

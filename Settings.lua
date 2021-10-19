@@ -1615,7 +1615,9 @@ function HT_Settings_initializeUI()
 
 	local arg1Editbox = createEditbox(eventBackground,"arg1Editbox",50,30,270,170,TOPLEFT,TOPLEFT,function(thisEditbox)
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.events[CSE].arguments.cooldown = thisEditbox:GetText()
+		if CST.events[CSE] then
+			CST.events[CSE].arguments.cooldown = thisEditbox:GetText()
+		end
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.events[CSE].arguments.cooldown,TEXT_TYPE_NUMERIC,"Cooldown")
 	arg1Editbox.Update = function()
@@ -1624,12 +1626,14 @@ function HT_Settings_initializeUI()
 			["Get Effect Cooldown"] = false,
 			["Entering/Exiting Combat"] = true,
 		}
-		arg1Editbox:SetText(CST.events[CSE].arguments.cooldown or 0)
-		arg1Editbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+		if CST.events[CSE] then
+			arg1Editbox:SetText(CST.events[CSE].arguments.cooldown or 0)
+			arg1Editbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+		end
 	end
 
 	local onlyYourCastCheckbox = createCheckbox(eventBackground,"onlyYourCastCheckbox", 30,30,60,175,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.onlyYourCast,function(arg)
-		if CST ~= "none" then
+		if CST ~= "none" and CST.events[CSE] then
 			CST.events[CSE].arguments.onlyYourCast = arg
 		end
 	end, "Only your cast")
@@ -1639,12 +1643,15 @@ function HT_Settings_initializeUI()
 			["Get Effect Cooldown"] = false,
 			["Entering/Exiting Combat"] = true,
 		}
-		onlyYourCastCheckbox:Update(CST.events[CSE].arguments.onlyYourCast)
-		onlyYourCastCheckbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+		if CST.events[CSE] then
+			onlyYourCastCheckbox:Update(CST.events[CSE].arguments.onlyYourCast)
+			onlyYourCastCheckbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+
+		end
 	end
 
 	local overwriteShorterDurationCheckbox = createCheckbox(eventBackground,"overwriteShorterDurationCheckbox", 30,30,60,205,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.overwriteShorterDuration,function(arg)
-	if CST ~= "none" then
+	if CST ~= "none" and CST.events[CSE] then
 		CST.events[CSE].arguments.overwriteShorterDuration = arg
 	end
 	end,"Don't overwrite effects when shorter duration is applied",400)
@@ -1654,45 +1661,54 @@ function HT_Settings_initializeUI()
 			["Get Effect Cooldown"] = true,
 			["Entering/Exiting Combat"] = true,
 		}
-		overwriteShorterDurationCheckbox:Update(CST.events[CSE].arguments.overwriteShorterDuration or true)
-		overwriteShorterDurationCheckbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+		if CST.events[CSE] then
+			overwriteShorterDurationCheckbox:Update(CST.events[CSE].arguments.overwriteShorterDuration or true)
+			overwriteShorterDurationCheckbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+		end
 	end
 
 	local dontUpdateFromThisEventCheckbox = createCheckbox(eventBackground,"dontUpdateFromThisEventCheckbox", 30,30,60,650,TOPLEFT,TOPLEFT,CST.events[CSE].arguments.dontUpdateFromThisEvent,function(arg)
-	if CST ~= "none" then
+	if CST ~= "none" and CST.events[CSE] then
 		CST.events[CSE].arguments.dontUpdateFromThisEvent = arg
 	end
 	end,"Don't update duration and stacks from this event (ignore original code and run only custom one)",300)
 	dontUpdateFromThisEventCheckbox.UpdateCheckbox = function()
-		dontUpdateFromThisEventCheckbox:Update(CST.events[CSE].arguments.dontUpdateFromThisEvent)
-		local visibilityConditions = {
-			["Get Effect Duration"] = false,
-			["Get Effect Cooldown"] = false,
-			["Entering/Exiting Combat"] = true,
-		}
-		dontUpdateFromThisEventCheckbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+		if CST.events[CSE] then
+			dontUpdateFromThisEventCheckbox:Update(CST.events[CSE].arguments.dontUpdateFromThisEvent)
+			local visibilityConditions = {
+				["Get Effect Duration"] = false,
+				["Get Effect Cooldown"] = false,
+				["Entering/Exiting Combat"] = true,
+			}
+			dontUpdateFromThisEventCheckbox:SetHidden(visibilityConditions[CST.events[CSE].type])
+
+		end
 	end
 
 	local eventTypeDropdown = createDropdown(eventBackground,"eventTypeDropdown",200,30,50,140,TOPLEFT,TOPLEFT,getKeysFromTable(HT_eventFunctions),CST.events[CSE].type,function(selection)
 	if CST.name ~= "none" then
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.events[CSE].type = selection
-		if selection == "Get Effect Cooldown" then
-			arg1Editbox:SetHidden(false)
-			arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
-			overwriteShorterDurationCheckbox:SetHidden(true)
-		elseif selection == "Get Effect Duration" then
-			onlyYourCastCheckbox:Update(CST.events[CSE].arguments.onlyYourCast)
-			overwriteShorterDurationCheckbox:SetHidden(false)
-			overwriteShorterDurationCheckbox:Update(CST.events[CSE].arguments.overwriteShorterDuration)
-			arg1Editbox:SetHidden(true)
+		if CST.events[CSE] then
+			CST.events[CSE].type = selection
+			if selection == "Get Effect Cooldown" then
+				arg1Editbox:SetHidden(false)
+				arg1Editbox:SetText(CST.events[CSE].arguments.cooldown)
+				overwriteShorterDurationCheckbox:SetHidden(true)
+			elseif selection == "Get Effect Duration" then
+				onlyYourCastCheckbox:Update(CST.events[CSE].arguments.onlyYourCast)
+				overwriteShorterDurationCheckbox:SetHidden(false)
+				overwriteShorterDurationCheckbox:Update(CST.events[CSE].arguments.overwriteShorterDuration)
+				arg1Editbox:SetHidden(true)
+			end
 		end
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end
 	end,"Event Type")
 	eventTypeDropdown.Update = function()
-		eventTypeDropdown.selection = CST.events[CSE].type
-		eventTypeDropdown:updateDropdown()
+		if CST.events[CSE] then
+			eventTypeDropdown.selection = CST.events[CSE].type
+			eventTypeDropdown:updateDropdown()
+		end
 	end
 
 	createTexture(eventBackground,"edge37",165,2,15,272.5,TOPLEFT,TOPLEFT,"")
@@ -1701,11 +1717,15 @@ function HT_Settings_initializeUI()
 
 	local luaCodeEditbox = createMultilineEditbox(eventBackground,"luaCodeEditbox",400,300,50,320,TOPLEFT,TOPLEFT,function(thisEditbox)
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):UnregisterEvents() else HT_findContainer(CST):UnregisterEvents() end
-		CST.events[CSE].arguments.luaCodeToExecute = thisEditbox:GetText()
+		if CST.events[CSE] then
+			CST.events[CSE].arguments.luaCodeToExecute = thisEditbox:GetText()
+		end
 		if CST.parent ~= "HT_Trackers" and HT_getTrackerFromName(CST.parent,HTSV.trackers).type == "Group Member" then HT_findContainer(HT_getTrackerFromName(CST.parent,HTSV.trackers)):Update(HT_getTrackerFromName(CST.parent,HTSV.trackers)) else HT_findContainer(CST):Update(CST) end
 	end,CST.events[CSE].arguments.luaCodeToExecute,nil,"Custom Lua Code executed every time event fires")
 	luaCodeEditbox.Update = function()
-		luaCodeEditbox:SetText(CST.events[CSE].arguments.luaCodeToExecute)
+		if CST.events[CSE] then
+			luaCodeEditbox:SetText(CST.events[CSE].arguments.luaCodeToExecute)
+		end
 	end
 
 	local eventsDropdown = createDropdown(eventBackground,"eventsDropdown",200,30,50,70,TOPLEFT,TOPLEFT,getKeysFromTable(CST.events),CSE,function(selection)

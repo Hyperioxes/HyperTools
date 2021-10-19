@@ -68,14 +68,6 @@ function HT_changeLock(t, setTo)
     end
 end
 
-function HT_removeGender(name)
-    b = string.find(name, "%^")
-    if b then
-        name = string.sub(name, 1, b - 1)
-    end
-    return name
-end
-
 function HT_checkIfSkillSlotted(skillIDTable)
     if next(skillIDTable) == nil then
         return true, 0
@@ -101,8 +93,10 @@ function HT_checkIfItemSetsEquipped(itemSetTable)
     end
     for _, itemSet in pairs(itemSetTable) do
         local numOfItems = 0
-        local setName
-        _, setName, _, numOfItems, maxEquipped = GetItemLinkSetInfo(itemSet, true) --This function instantly gets number of pieces worn but it ignores offbar
+        local perfectedNumOfItems= 0
+        local setName, maxEquipped
+        _, setName, _, numOfItems, maxEquipped,_,perfectedNumOfItems = GetItemLinkSetInfo(itemSet, true) --This function instantly gets number of pieces worn but it ignores offbar
+        numOfItems = numOfItems + perfectedNumOfItems
 
         --Check other bar's gear and add them if the set matches
         local additonalBarToCheck = { EQUIP_SLOT_BACKUP_MAIN, EQUIP_SLOT_BACKUP_OFF } --By default check backbar
@@ -127,6 +121,7 @@ function HT_checkIfItemSetsEquipped(itemSetTable)
     end
     return false
 end
+
 
 function HT_checkIfZone(zonesTable)
     if next(zonesTable) == nil then
