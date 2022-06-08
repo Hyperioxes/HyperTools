@@ -33,26 +33,24 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
 		PlaySound(SOUNDS.DEFAULT_CLICK)
         checkbox.data = not checkbox.data
         if checkbox.data then
-            checkbox:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
+            checkbox:SetNormalTexture("/esoui/art/buttons/checkbox_checked.dds")
         else
-            checkbox:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
+            checkbox:SetNormalTexture("/esoui/art/buttons/checkbox_unchecked.dds")
         end
         checkboxFunction(checkbox.data)
     end)
-    checkbox:SetAnchor(fromAnchor, parent, toAnchor, xOffset, yOffset)
-    checkbox:SetDimensions(sizeX, sizeY)
     if checkbox.data then
-        checkbox:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
+        checkbox:SetNormalTexture("/esoui/art/buttons/checkbox_checked.dds")
     else
-        checkbox:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
+        checkbox:SetNormalTexture("/esoui/art/buttons/checkbox_unchecked.dds")
     end
 
     local function Update(self, newValue)
         self.data = newValue
         if self.data then
-            self:SetTexture("/esoui/art/buttons/checkbox_checked.dds")
+            self:SetNormalTexture("/esoui/art/buttons/checkbox_checked.dds")
         else
-            self:SetTexture("/esoui/art/buttons/checkbox_unchecked.dds")
+            self:SetNormalTexture("/esoui/art/buttons/checkbox_unchecked.dds")
         end
     end
 
