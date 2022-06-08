@@ -26,7 +26,7 @@ function createButton(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, 
 end
 
 function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, defaultValue, checkboxFunction,labelText,labelLength)
-    local checkbox = WM:CreateControl("$(parent)" .. name, parent, CT_TEXTURE)
+    local checkbox = WM:CreateControl("$(parent)" .. name, parent, CT_BUTTON)
     checkbox.data = defaultValue
     checkbox:SetMouseEnabled(true)
     checkbox:SetHandler("OnMouseUp", function(_, _, _)
