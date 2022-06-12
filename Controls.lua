@@ -60,12 +60,14 @@ function createCheckbox(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor
     if labelText then
         checkbox.label = createLabel(checkbox,"label",labelLength or 100,60,0,0,LEFT,RIGHT,labelText,0)
     end
+    checkbox:SetDrawLayer(1)
     return checkbox
 end
 
 function createColorpicker(parent, name, sizeX, sizeY, xOffset, yOffset, fromAnchor, toAnchor, color, colorpickerFunction,labelText)
     local control = WM:CreateControl("$(parent)" .. name, parent, CT_CONTROL)
     local colorpicker = WM:CreateControl("$(parent)" .. name, control, CT_TEXTURE)
+    colorpicker:SetDrawLayer(1)
     colorpicker.color = color
     colorpicker:SetMouseEnabled(true)
     colorpicker:SetHandler("OnMouseUp", function(_, _, upInside)
