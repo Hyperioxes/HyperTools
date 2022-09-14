@@ -11,7 +11,7 @@ function HT_processLoad(trackerLoad)
     if trackerLoad.role ~= GetGroupMemberSelectedRole("player") and trackerLoad.role ~= 0 and GetGroupMemberSelectedRole("player") ~= 0 then
         return false
     end
-    if trackerLoad.class ~= GetUnitClass("player") and trackerLoad.class ~= "Any" then
+    if trackerLoad.class ~= HT_classNames[GetUnitClassId("player")] and trackerLoad.class ~= "Any" then
         return false
     end
     if not HT_checkIfSkillSlotted(trackerLoad.skills) then

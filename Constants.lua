@@ -13,6 +13,15 @@ HT_targets = {
     end,
 }
 
+HT_classNames = {
+	[1] = "Dragonknight",
+	[2] = "Sorcerer",
+	[3] = "Nightblade",
+	[4] = "Warden",
+	[5] = "Necromancer",
+	[6] = "Templar"
+}
+
 operators = {
     ["<="] = function(arg1, arg2)
         if arg1 <= arg2 then
