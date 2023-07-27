@@ -19,7 +19,8 @@ HT_classNames = {
 	[3] = "Nightblade",
 	[4] = "Warden",
 	[5] = "Necromancer",
-	[6] = "Templar"
+	[6] = "Templar",
+	[117] = "Arcanist",
 }
 
 operators = {
