@@ -13,6 +13,17 @@ HT = {
 
 _G["HyperTools"] = {}
 
+local function StonefistStompIconHook()
+    local old = _G["GetSlotTexture"]
+    _G["HyperTools"]["GetSlotTexture"] = old
+    _G["GetSlotTexture"] = function(...)
+        if GetSlotBoundId(...) == 31816 then
+            return "HyperTools/icons/stonefistStomp.dds"
+        end
+        return old(...)
+    end
+end
+
 function HT_adjustDataForNewestVersion(data)
     local function searchThroughTable(t)
         for _, event in pairs(t.events) do
@@ -148,10 +159,13 @@ function OnAddOnLoaded(_, addonName)
     end
 
 
-    EVENT_MANAGER:RegisterForEvent(name, EVENT_ACTION_SLOT_ABILITY_USED, function() --Check when boss changed
-        --zo_callLater(CancelCast,300)
-        --CancelCast()
-    end)
+    --EVENT_MANAGER:RegisterForEvent(name, EVENT_ACTION_SLOT_ABILITY_USED, function(_, slotId)
+    --    local abilityId = GetSlotBoundId(slotId)
+    --    --if slotId == 5 then
+    --    --    zo_callLater(CancelCast,50)
+    --    --end
+    --    --CancelCast()
+    --end)
 
     local originalGetUnitName = GetUnitName
     local mainBossToMiniBoss = {
@@ -182,7 +196,7 @@ function OnAddOnLoaded(_, addonName)
         end
         return originalGetUnitName(arg1)
     end
-
+    StonefistStompIconHook()
 
 end
 
