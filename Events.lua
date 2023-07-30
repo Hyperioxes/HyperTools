@@ -13,7 +13,7 @@ end
 local eventFunctions = {
     ["Get Effect Duration"] = function(name, ID, tracker, arguments)
         EVENT_MANAGER:RegisterForEvent(name, EVENT_EFFECT_CHANGED, function(_, result, _, _, _, _, expireTime, stackCount, _, _, _, _, _, targetName,targetId)
-            targetName = zo_strformat("<<1>>", targetName)
+            targetName = zo_strformat("<<C:1>>", targetName)
             if not arguments.dontUpdateFromThisEvent then
                 if expireTime > (tracker.expiresAt[targetName] or 0) or (not arguments.overwriteShorterDuration) then
                     tracker.expiresAt[targetName] = expireTime
@@ -54,7 +54,7 @@ local eventFunctions = {
                 hyperToolsTracker = tracker
                 hyperToolsGlobal.result = result
                 hyperToolsGlobal.hitValue = hitValue
-                hyperToolsGlobal.targetName = zo_strformat("<<1>>", sourceName)
+                hyperToolsGlobal.targetName = zo_strformat("<<C:1>>", sourceName)
                 zo_loadstring(arguments.luaCodeToExecute)()
                 hyperToolsGlobal = {}
                 tracker = hyperToolsTracker
