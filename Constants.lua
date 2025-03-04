@@ -1,6 +1,6 @@
 HT_targets = {
     ["Yourself"] = function()
-        return GetUnitName("player")
+        return zo_strformat("<<C:1>>", GetUnitName("player"))
     end,
     ["Boss"] = function(i)
         return GetUnitName("boss" .. i)
@@ -9,7 +9,7 @@ HT_targets = {
         return GetUnitName("reticleover")
     end,
     ["Group"] = function(i)
-        return GetUnitName("group" .. i)
+        return zo_strformat("<<C:1>>", GetUnitName("group" .. i))
     end,
 }
 

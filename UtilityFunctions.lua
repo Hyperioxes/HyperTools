@@ -75,7 +75,13 @@ function HT_checkIfSkillSlotted(skillIDTable)
     for _, skillID in pairs(skillIDTable) do
         for i = 3, 8 do
             local slot1 = GetSlotBoundId(i, HOTBAR_CATEGORY_PRIMARY)
+            if GetSlotType(i, HOTBAR_CATEGORY_PRIMARY) == ACTION_TYPE_CRAFTED_ABILITY then
+                slot1 = GetAbilityIdForCraftedAbilityId(slot1)
+            end
             local slot2 = GetSlotBoundId(i, HOTBAR_CATEGORY_BACKUP)
+            if GetSlotType(i, HOTBAR_CATEGORY_BACKUP) == ACTION_TYPE_CRAFTED_ABILITY then
+                slot2 = GetAbilityIdForCraftedAbilityId(slot2)
+            end
             if skillID == slot1 or skillID == slot2 then
                 return true, skillID
             end
